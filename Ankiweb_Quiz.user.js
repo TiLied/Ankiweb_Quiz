@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        AnkiWeb Quiz
 // @namespace   https://greasyfork.org/users/102866
-// @description Shows quiz
+// @description Shows quiz on ankiweb
 // @include     https://ankiweb.net/*
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
