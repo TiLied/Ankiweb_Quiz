@@ -9,7 +9,6 @@
 // @version     0.0.7
 // @grant       GM_getResourceText
 // @grant       GM_getResourceURL
-// @resource    ankiDeck https://raw.githubusercontent.com/TiLied/hello-world/master/test/test4.txt
 // ==/UserScript==
 
 var originAnkiDeck = GM_getResourceText("ankiDeck");
