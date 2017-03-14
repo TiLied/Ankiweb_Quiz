@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.0.4
+// @version     0.0.7
 // @grant       GM_getResourceText
 // @grant       GM_getResourceURL
 // @resource    ankiDeck https://raw.githubusercontent.com/TiLied/hello-world/master/test/test4.txt
@@ -27,6 +27,7 @@ var inEndAnswer = "</awq_answer>";
 var trueId, id;
 var buttons = [];
 var tempArr = [];
+var debug = false;
 
 Main();
 
@@ -46,6 +47,7 @@ function Main()
         //console.log(tempStrings[i]);
     }
     console.log(tempStrings);
+    cssAdd();
 }
 
 function findIndexes(searchStr, str, caseSensitive)
@@ -66,6 +68,45 @@ function findIndexes(searchStr, str, caseSensitive)
     return indices;
 }
 
+//css styles adds
+function cssAdd()
+{
+    $("head").append($("<style type=text/css></style>").text("button.awq_LeftSide { \
+        float:left;  \
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("button.awq_RightSide { \
+        float:right;  \
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("button.awq_style { \
+        cursor: pointer; color: #fff; background-color: #0275d8; border-color: #0275d8; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent;\
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("button.awq_style:hover { \
+        cursor: pointer; color: #fff; background-color: #025aa5; border-color: #01549b; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent;\
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("div.awq_rstyle { \
+        width:500px; margin-top:30px;\
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("button.awq_true { \
+        background-color: #75d802; border-color: #75d802;\
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("button.awq_true:hover { \
+        background-color: #5aa502; border-color: #5aa502;\
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("button.awq_false { \
+        background-color: #d80275; border-color: #d80275;\
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("button.awq_false:hover { \
+        background-color: #a5025a; border-color: #a5025a;\
+        }"));
+}
 
 $(document).ready(function () {
 
@@ -75,26 +116,41 @@ $(document).ready(function () {
     $("#studynow").click(function () {
         setTimeout(function ()
         {
-            console.log($("awq").text());
-            searchFor = $("awq").text();
+            setUI();
+            searchFor = $("awq_question").text();
+            if (debug) {
+                console.log("searchFor:" + searchFor);
+            }
             getTrueAnswer(searchFor);
             //alert("Settings has been changed. Now brackets hiding.");
-            console.log('Study Click');
-            console.log(searchFor);
-            //return $("awq").text();
-        }, 1000);
-        //searchFor = question();
-        //getTrueAnswer($("awq").text());
-        //alert("Settings has been changed. Now brackets hiding.");
-        //console.log('Study Click');
-        //console.log(searchFor);
+            if (debug) {
+                console.log('Study Click');
+            }
+        }, 1500);
     });
 
-    function question()
+    function setUI()
     {
-        //setTimeout(function () { console.log($("awq").text()); return $("awq").text(); }, 1000);
-        //console.log($("#qa").html());
-        //return $("awq").text();
+        const buttonP = $("<button id=awq_quiz class=btn style=margin-left:4px></button>").text("Quiz");
+        const buttonL = $("<div class=awq_rstyle style=float:left></div>").html("<button class=awq_LeftSide></button><button class=awq_LeftSide></button><button class=awq_LeftSide></button><button class=awq_LeftSide></button>");
+        const buttonR = $("<div class=awq_rstyle style=float:right></div>").html("<button class=awq_RightSide></button><button class=awq_RightSide></button><button class=awq_RightSide></button><button class=awq_RightSide></button>");
+        $("#qa_box").before(buttonL);
+        $("#qa_box").before(buttonR);
+
+        $("#leftStudyMenu").after(buttonP);
+
+        settingsPanel();
+
+        $("#awq_quiz").addClass("btn-secondary");
+        $(".awq_LeftSide").addClass("awq_style");
+        $(".awq_RightSide").addClass("awq_style");
+        $(".awq_rstyle").hide();
+    }
+
+    function settingsPanel() {
+        $("#awq_quiz").click(function () {
+            $(".awq_rstyle").toggle();
+        });
     }
 
     function getTrueAnswer(sFor) {
@@ -104,7 +160,9 @@ $(document).ready(function () {
                 const str = tempStrings[i].toString();
                 trueAnswer = str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer));
                 trueId = i;
-                console.log("True answer : " + trueAnswer + " id trueAnsw = " + trueId);
+                if (debug) {
+                    console.log("True answer : " + trueAnswer + " id trueAnsw = " + trueId);
+                }
                 getFalseAnswers(trueId);
                 break;
             }
@@ -116,11 +174,15 @@ $(document).ready(function () {
         for (var i = 0; i < 7; i++) {
             id = get_rand(tempStrings);
             if (id != trueId) {
-                console.log(tempStrings[id]);
+                if (debug) {
+                    console.log(tempStrings[id]);
+                }
                 const str = tempStrings[id].toString();
                 falseAnswers[i] = str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer));
-                console.log("***False answer " + i + " : " + falseAnswers[i] + " id: " + id);
-                //console.log("inBegAnswer: " + str.indexOf(inBegAnswer) + " : " + str.indexOf(inEndAnswer) + " inEndAnswer");
+                if (debug) {
+                    console.log("***False answer " + i + " : " + falseAnswers[i] + " id: " + id);
+                    //console.log("inBegAnswer: " + str.indexOf(inBegAnswer) + " : " + str.indexOf(inEndAnswer) + " inEndAnswer");
+                }
             } else {
                 id = get_rand(tempStrings);
                 i--;
@@ -134,7 +196,9 @@ $(document).ready(function () {
     {
         $("#ansbuta").click(function () {
             setTimeout(function () {
-                console.log("Button check");
+                if (debug) {
+                    console.log("Button check");
+                }
                 $("#ease1").click(function () {
                     otherEvent();
                 });
@@ -153,11 +217,38 @@ $(document).ready(function () {
 
     function otherEvent()
     {
-        console.log("Button click");
-        console.log($("awq").text());
-        searchFor = $("awq").text();
-        $(".awq_rstyle").remove();
-        getTrueAnswer(searchFor);
+        if (debug) {
+            console.log("Button click");
+            console.log("---------------");
+        }
+        searchFor = "";
+        searchFor = $("awq_question").text();
+        if (debug) {
+            console.log("searchFor:" + searchFor);
+            console.log($("awq").text().length);
+        }
+        $(".awq_rstyle").hide();
+        if (searchFor == "") {
+            setTimeout(function () {
+                if ($("awq").text().length === 0) {
+                    setTimeout(function () {
+                        searchFor = $("awq_question").text();
+                        if (debug) {
+                            console.log("searchFor:::" + searchFor);
+                        }
+                        getTrueAnswer(searchFor);
+                    }, 3000);
+                } else {
+                    searchFor = $("awq_question").text();
+                    if (debug) {
+                        console.log("searchFor::" + searchFor);
+                    }
+                    getTrueAnswer(searchFor);
+                }
+            }, 1000);
+        } else {
+            getTrueAnswer(searchFor);
+        }
     }
 
     //random functions
@@ -179,67 +270,66 @@ $(document).ready(function () {
 
     function ramdomButton()
     {
+        buttons.length = 0;
         tempArr.length = 0;
         var allAnswers = [];
         allAnswers[0] = trueAnswer;
         for (var i = 1; i <= falseAnswers.length; i++) {
             allAnswers[i] = falseAnswers[i - 1];
         }
-        console.log(falseAnswers);
-        console.log(allAnswers);
+        if (debug) {
+            console.log("False answers :");
+            console.log(falseAnswers);
+            console.log("ALL answers :");
+            console.log(allAnswers);
+        }
         for (var i = 0; i < allAnswers.length; i++) {
             buttons[i] = allAnswers[get_rand(allAnswers)];
         }
-        console.log("Random oeder :) = " + buttons);
-        // console.log($(".awq_LeftSide").html());
-
+        if (debug) {
+            console.log("Random order :) = " + buttons);
+            // console.log($(".awq_LeftSide").html());
+        }
         uiButtons();
+        //settingsPanel();
     }
 
     function uiButtons()
     {
-        $("head").append($("<style type=text/css></style>").text("button.awq_LeftSide { \
-        float:left;  \
-        }"));
+        const sell = document.querySelectorAll("button.awq_LeftSide");
+        const selr = document.querySelectorAll("button.awq_RightSide");
+        for (var i = 0; i < buttons.length / 2; i++)
+        {
+            $(sell[i]).text(buttons[i]);
+            if (debug) {
+                //console.log(sel[i]);
+            }
+        }
 
-        $("head").append($("<style type=text/css></style>").text("button.awq_RightSide { \
-        float:right;  \
-        }"));
+        buttons.reverse();
 
-        $("head").append($("<style type=text/css></style>").text("button.awq_style { \
-        cursor: pointer; color: #fff; background-color: #0275d8; border-color: #0275d8; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent;\
-        }"));
+        for (var i = 0; i < buttons.length / 2; i++) {
+            $(selr[i]).text(buttons[i]);
+            if (debug) {
+                //console.log(sel[i]);
+            }
+        }
 
-        $("head").append($("<style type=text/css></style>").text("button.awq_style:hover { \
-        cursor: pointer; color: #fff; background-color: #025aa5; border-color: #01549b; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent;\
-        }"));
-
-        $("head").append($("<style type=text/css></style>").text("div.awq_rstyle { \
-        width:500px; margin-top:30px;\
-        }"));
-
-        const buttonL = $("<div class=awq_rstyle style=float:left></div>").html("<button class=awq_LeftSide>" + buttons[0] + "</button><button class=awq_LeftSide>" + buttons[1] + "</button><button class=awq_LeftSide>" + buttons[2] + "</button><button class=awq_LeftSide>" + buttons[3] + "</button>");
-        const buttonR = $("<div class=awq_rstyle style=float:right></div>").html("<button class=awq_RightSide>" + buttons[4] + "</button><button class=awq_RightSide>" + buttons[5] + "</button><button class=awq_RightSide>" + buttons[6] + "</button><button class=awq_RightSide>" + buttons[7] + "</button>");
-        $("#qa_box").before(buttonL);
-        $("#qa_box").before(buttonR);
-        $(".awq_LeftSide").addClass("awq_style");
-        $(".awq_RightSide").addClass("awq_style");
         checkPresedButtons();
     }
 
     function checkPresedButtons()
     { 
-        $("head").append($("<style type=text/css></style>").text("button.awq_true { \
-        background-color: green; border-color: green;\
-        }"));
-
         $(".awq_LeftSide, .awq_RightSide").removeClass("awq_true");
+        $(".awq_LeftSide, .awq_RightSide").removeClass("awq_false");
 
         $(".awq_LeftSide, .awq_RightSide").click(function ()
         {
-            if (trueAnswer == $(this).text())
-            {
+            if (trueAnswer == $(this).text()) {
                 $(this).addClass("awq_true");
+            } else
+            {
+                $(this).addClass("awq_false");
             }
         });
     }
