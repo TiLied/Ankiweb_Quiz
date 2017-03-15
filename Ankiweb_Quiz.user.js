@@ -6,10 +6,10 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.0.7
+// @version     0.0.8
 // @grant       GM_getResourceText
 // @grant       GM_getResourceURL
-// @resource    ankiDeck https://raw.githubusercontent.com/TiLied/hello-world/master/test/test5.txt
+// @resource    ankiDeck PUT_HERE_TXT_CARDS
 // ==/UserScript==
 
 var originAnkiDeck = GM_getResourceText("ankiDeck");
@@ -29,13 +29,7 @@ var buttons = [];
 var tempArr = [];
 var debug = true;
 
-var str = "hello I am a string";
-var am = "(^|\s)string($|\s)";
-
-//alert(str.includes(/(^|\s)string($|\s)/)); // alerts -1
-alert(str.search(/(^|\s)string($|\s)/)); // alerts 12
-
-//Main();
+Main();
 
 function Main()
 {
@@ -86,7 +80,7 @@ function cssAdd()
         }"));
 
     $("head").append($("<style type=text/css></style>").text("button.awq_style { \
-        cursor: pointer; color: #fff; background-color: #0275d8; border-color: #0275d8; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent;\
+        cursor: pointer; color: #fff; background-color: #0275d8; border-color: #0275d8; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent; max-width:200px; margin:5px;\
         }"));
 
     $("head").append($("<style type=text/css></style>").text("button.awq_style:hover { \
@@ -94,7 +88,7 @@ function cssAdd()
         }"));
 
     $("head").append($("<style type=text/css></style>").text("div.awq_rstyle { \
-        width:500px; margin-top:30px; \
+        width:50%; margin-top:30px; transform: translate(0px, 0px); z-index: 289;\
         }"));
 
     $("head").append($("<style type=text/css></style>").text("button.awq_true { \
@@ -124,11 +118,12 @@ $(document).ready(function () {
         {
             setUI();
             //searchFor = $("awq_question").text();
-            searchFor = $("awq_question").html();
+            //searchFor = $("awq_question").html();
+            searchFor = $.trim($("awq_question").html());
             if (debug) {
                 console.log("searchFor:" + searchFor);
             }
-            //getTrueAnswer(searchFor);
+            getTrueAnswer(searchFor);
             //alert("Settings has been changed. Now brackets hiding.");
             if (debug) {
                 console.log('Study Click');
@@ -141,8 +136,9 @@ $(document).ready(function () {
         const buttonP = $("<button id=awq_quiz class=btn style=margin-left:4px></button>").text("Quiz");
         const buttonL = $("<div class=awq_rstyle style=float:left></div>").html("<button class=awq_LeftSide></button><button class=awq_LeftSide></button><button class=awq_LeftSide></button><button class=awq_LeftSide></button>");
         const buttonR = $("<div class=awq_rstyle style=float:right></div>").html("<button class=awq_RightSide></button><button class=awq_RightSide></button><button class=awq_RightSide></button><button class=awq_RightSide></button>");
-        $("#qa_box").before(buttonL);
-        $("#qa_box").before(buttonR);
+        $(".pt-1").before("<br>");
+        $(".pt-1").before(buttonL);
+        $(".pt-1").before(buttonR);
 
         $("#leftStudyMenu").after(buttonP);
 
@@ -160,15 +156,35 @@ $(document).ready(function () {
         });
     }
 
-    function getTrueAnswer(sFor) {
+    function escapeRegExp(string)
+    {
+        return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+    }
+
+    function getTrueAnswer(sFor)
+    {
+        var regex = '(^|\\s|\\b|(\\>))';
+        regex += escapeRegExp(sFor);
+        regex += '($|\\s|\\b|(\\<))';
+
+        if (debug)
+        {
+            console.log(regex);
+        }
+
         for (var i = 0; i < tempStrings.length; i++) {
-            //console.log('sFor =' + sFor + "leng " + sFor.length + " debug : " + tempStrings[i].includes(sFor));
+            //console.log('sFor =' + sFor + " leng " + sFor.length + " debug : " + new RegExp(regex, "g").test(tempStrings[i]));
             //contains = tempStrings[i].matches(".*\\bram\\b.*");
-            if (tempStrings[i].includes(sFor)) {
+            if (new RegExp(regex, "g").test(tempStrings[i]))
+            {
                 const str = tempStrings[i].toString();
                 trueAnswer = str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer));
                 trueId = i;
-                if (debug) {
+                if (debug)
+                {
+                    //console.log(tempStrings[i - 1]);
+                    console.log(str);
+                    //console.log(tempStrings[i + 1]);
                     console.log("True answer : " + trueAnswer + " id trueAnsw = " + trueId);
                 }
                 getFalseAnswers(trueId);
@@ -230,7 +246,8 @@ $(document).ready(function () {
             console.log("---------------");
         }
         searchFor = "";
-        searchFor = $("awq_question").html();
+        //searchFor = $("awq_question").html();
+        searchFor = $.trim($("awq_question").html());
         if (debug) {
             console.log("searchFor:" + searchFor);
             console.log($("awq").text().length);
@@ -240,14 +257,16 @@ $(document).ready(function () {
             setTimeout(function () {
                 if ($("awq").text().length === 0) {
                     setTimeout(function () {
-                        searchFor = $("awq_question").html();
+                        //searchFor = $("awq_question").html();
+                        searchFor = $.trim($("awq_question").html());
                         if (debug) {
                             console.log("searchFor:::" + searchFor);
                         }
                         getTrueAnswer(searchFor);
                     }, 3000);
                 } else {
-                    searchFor = $("awq_question").html();
+                    //searchFor = $("awq_question").html();
+                    searchFor = $.trim($("awq_question").html());
                     if (debug) {
                         console.log("searchFor::" + searchFor);
                     }
@@ -344,3 +363,19 @@ $(document).ready(function () {
 
     console.log("AnkiWeb Quiz v" + GM_info.script.version + " Initialized"); 
 });
+
+
+// ------------
+//  TODO
+// ------------
+
+/* TODO STARTS
+    1)Make it only one element of buttons + increase numbers of buttons to 10-12
+    2)Make it limit of length answer and put whole in attribute title
+    3)Make it settings
+        3.1)Debug 
+        3.2)Add txt file ***RESEARCH NEEDED***
+            3.2.1)Choose them
+        3.3)Make it always show quiz
+    4)Make it full functionality of Japanese deck, partial done in 0.0.8
+TODO ENDS */
