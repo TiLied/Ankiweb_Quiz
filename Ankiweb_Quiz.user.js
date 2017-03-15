@@ -9,6 +9,7 @@
 // @version     0.0.7
 // @grant       GM_getResourceText
 // @grant       GM_getResourceURL
+// @resource    ankiDeck https://raw.githubusercontent.com/TiLied/hello-world/master/test/test5.txt
 // ==/UserScript==
 
 var originAnkiDeck = GM_getResourceText("ankiDeck");
@@ -26,9 +27,15 @@ var inEndAnswer = "</awq_answer>";
 var trueId, id;
 var buttons = [];
 var tempArr = [];
-var debug = false;
+var debug = true;
 
-Main();
+var str = "hello I am a string";
+var am = "(^|\s)string($|\s)";
+
+alert(str.includes(/(^|\s)string($|\s)/)); // alerts -1
+//alert(str.search(/(^|\s)string($|\s)/)); // alerts 12
+
+//Main();
 
 function Main()
 {
@@ -87,7 +94,7 @@ function cssAdd()
         }"));
 
     $("head").append($("<style type=text/css></style>").text("div.awq_rstyle { \
-        width:500px; margin-top:30px;\
+        width:500px; margin-top:30px; \
         }"));
 
     $("head").append($("<style type=text/css></style>").text("button.awq_true { \
@@ -116,11 +123,12 @@ $(document).ready(function () {
         setTimeout(function ()
         {
             setUI();
-            searchFor = $("awq_question").text();
+            //searchFor = $("awq_question").text();
+            searchFor = $("awq_question").html();
             if (debug) {
                 console.log("searchFor:" + searchFor);
             }
-            getTrueAnswer(searchFor);
+            //getTrueAnswer(searchFor);
             //alert("Settings has been changed. Now brackets hiding.");
             if (debug) {
                 console.log('Study Click');
@@ -155,6 +163,7 @@ $(document).ready(function () {
     function getTrueAnswer(sFor) {
         for (var i = 0; i < tempStrings.length; i++) {
             //console.log('sFor =' + sFor + "leng " + sFor.length + " debug : " + tempStrings[i].includes(sFor));
+            //contains = tempStrings[i].matches(".*\\bram\\b.*");
             if (tempStrings[i].includes(sFor)) {
                 const str = tempStrings[i].toString();
                 trueAnswer = str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer));
@@ -221,7 +230,7 @@ $(document).ready(function () {
             console.log("---------------");
         }
         searchFor = "";
-        searchFor = $("awq_question").text();
+        searchFor = $("awq_question").html();
         if (debug) {
             console.log("searchFor:" + searchFor);
             console.log($("awq").text().length);
@@ -231,14 +240,14 @@ $(document).ready(function () {
             setTimeout(function () {
                 if ($("awq").text().length === 0) {
                     setTimeout(function () {
-                        searchFor = $("awq_question").text();
+                        searchFor = $("awq_question").html();
                         if (debug) {
                             console.log("searchFor:::" + searchFor);
                         }
                         getTrueAnswer(searchFor);
                     }, 3000);
                 } else {
-                    searchFor = $("awq_question").text();
+                    searchFor = $("awq_question").html();
                     if (debug) {
                         console.log("searchFor::" + searchFor);
                     }
@@ -299,7 +308,7 @@ $(document).ready(function () {
         const selr = document.querySelectorAll("button.awq_RightSide");
         for (var i = 0; i < buttons.length / 2; i++)
         {
-            $(sell[i]).text(buttons[i]);
+            $(sell[i]).html(buttons[i]);
             if (debug) {
                 //console.log(sel[i]);
             }
@@ -308,7 +317,7 @@ $(document).ready(function () {
         buttons.reverse();
 
         for (var i = 0; i < buttons.length / 2; i++) {
-            $(selr[i]).text(buttons[i]);
+            $(selr[i]).html(buttons[i]);
             if (debug) {
                 //console.log(sel[i]);
             }
