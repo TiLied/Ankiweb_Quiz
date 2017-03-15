@@ -32,7 +32,7 @@ var debug = true;
 var str = "hello I am a string";
 var am = "(^|\s)string($|\s)";
 
-alert(str.includes(/(^|\s)string($|\s)/)); // alerts -1
+//alert(str.includes(/(^|\s)string($|\s)/)); // alerts -1
 //alert(str.search(/(^|\s)string($|\s)/)); // alerts 12
 
 //Main();
