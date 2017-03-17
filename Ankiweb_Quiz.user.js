@@ -8,8 +8,7 @@
 // @author      TiLied
 // @version     0.0.9
 // @grant       GM_getResourceText
-// @grant       GM_getResourceURL
-// @resource    ankiDeck PUT_HERE_TXT_CARDS
+// @resource    ankiDeck test7.txt
 // ==/UserScript==
 
 var originAnkiDeck = GM_getResourceText("ankiDeck");
