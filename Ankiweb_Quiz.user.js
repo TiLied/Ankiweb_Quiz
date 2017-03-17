@@ -1,4 +1,4 @@
-﻿// ==UserScript==
+// ==UserScript==
 // @name        AnkiWeb Quiz
 // @namespace   https://greasyfork.org/users/102866
 // @description Shows quiz on ankiweb
@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.0.9
+// @version     0.0.8
 // @grant       GM_getResourceText
 // @resource    ankiDeck test7.txt
 // ==/UserScript==
@@ -27,7 +27,6 @@ var trueId, id;
 var buttons = [];
 var tempArr = [];
 var debug = true;
-var rubyVal;
 
 Main();
 
@@ -71,8 +70,12 @@ function findIndexes(searchStr, str, caseSensitive)
 //css styles adds
 function cssAdd()
 {
-    $("head").append($("<style type=text/css></style>").text("button.awq_btn { \
-         \
+    $("head").append($("<style type=text/css></style>").text("button.awq_LeftSide { \
+        float:left;  \
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("button.awq_RightSide { \
+        float:right;  \
         }"));
 
     $("head").append($("<style type=text/css></style>").text("button.awq_style { \
@@ -84,7 +87,7 @@ function cssAdd()
         }"));
 
     $("head").append($("<style type=text/css></style>").text("div.awq_rstyle { \
-        width:100%; margin-top:30px; z-index: 289;\
+        width:50%; margin-top:30px; transform: translate(0px, 0px); z-index: 289;\
         }"));
 
     $("head").append($("<style type=text/css></style>").text("button.awq_true { \
@@ -113,12 +116,14 @@ $(document).ready(function () {
         setTimeout(function ()
         {
             setUI();
-            searchFor = searchQuestion();
-            if (debug)
-            {
+            //searchFor = $("awq_question").text();
+            //searchFor = $("awq_question").html();
+            searchFor = $.trim($("awq_question").html());
+            if (debug) {
                 console.log("searchFor:" + searchFor);
             }
             getTrueAnswer(searchFor);
+            //alert("Settings has been changed. Now brackets hiding.");
             if (debug) {
                 console.log('Study Click');
             }
@@ -128,195 +133,31 @@ $(document).ready(function () {
     function setUI()
     {
         const buttonP = $("<button id=awq_quiz class=btn style=margin-left:4px></button>").text("Quiz");
-        const button = $("<div class=awq_rstyle></div>").html("<button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button>");
-
+        const buttonL = $("<div class=awq_rstyle style=float:left></div>").html("<button class=awq_LeftSide></button><button class=awq_LeftSide></button><button class=awq_LeftSide></button><button class=awq_LeftSide></button>");
+        const buttonR = $("<div class=awq_rstyle style=float:right></div>").html("<button class=awq_RightSide></button><button class=awq_RightSide></button><button class=awq_RightSide></button><button class=awq_RightSide></button>");
         $(".pt-1").before("<br>");
-        $(".pt-1").before(button);
+        $(".pt-1").before(buttonL);
+        $(".pt-1").before(buttonR);
 
         $("#leftStudyMenu").after(buttonP);
 
-        settingsEvents();
+        settingsPanel();
 
         $("#awq_quiz").addClass("btn-secondary");
-        $(".awq_btn").addClass("awq_style");
+        $(".awq_LeftSide").addClass("awq_style");
+        $(".awq_RightSide").addClass("awq_style");
         $(".awq_rstyle").hide();
     }
 
-    function settingsEvents()
-    {
-
+    function settingsPanel() {
         $("#awq_quiz").click(function () {
             $(".awq_rstyle").toggle();
-        });
-
-        $("#ansbuta").click(function ()
-        {
-            setTimeout(function ()
-            {
-                if (debug)
-                {
-                    console.log("Button check");
-                }
-                $("#ease1").click(function ()
-                {
-                    otherEvent();
-                });
-                $("#ease2").click(function ()
-                {
-                    otherEvent();
-                });
-                $("#ease3").click(function ()
-                {
-                    otherEvent();
-                });
-                $("#ease4").click(function ()
-                {
-                    otherEvent();
-                });
-            }, 500);
-        });
-
-        $(".awq_btn").click(function ()
-        {
-            if (debug)
-            {
-                console.log($(this).html());
-                console.log(trueAnswer);
-            }
-
-            if (trueAnswer == $(this).html())
-            {
-                $(this).addClass("awq_true");
-            } else
-            {
-                $(this).addClass("awq_false");
-            }
         });
     }
 
     function escapeRegExp(string)
     {
         return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
-    }
-
-    function searchQuestion()
-    {
-        if (debug)
-        {
-            console.log("span: ");
-            console.log($("awq_question").has("span"));
-        }
-        if ($("awq_question").has("span").length >= 1)
-        {
-            var contentText = $("awq_question").contents().filter(function ()
-            {
-                return this.nodeType == 3;
-            });
-
-            var contentSpan = $("awq_question").contents().filter(function ()
-            {
-                return this.nodeType == 1;
-            });
-
-            if (debug)
-            {
-                console.log(contentText);
-                console.log(contentSpan);
-            }
-
-            rubyVal = "";
-
-
-            //This is if first goes hiragana/katakana
-            if (contentText[0].nodeValue != "")
-            {
-                rubyVal = $.trim(contentText[0].nodeValue);
-                rubyVal += "<ruby><rb>";
-
-                rubyVal += $.trim($(contentSpan[0]).contents().filter(function ()
-                {
-                    return this.nodeType == 3;
-                })[0].nodeValue) + "</rb><rt>";
-
-                rubyVal += $(contentSpan[0]).contents()[0].innerHTML + "</rt></ruby>";
-
-                //After kanji goes  hiragana/katakana if not return
-                if (contentText[1] != null)
-                {
-                    rubyVal += $.trim(contentText[1].nodeValue);
-                    if (contentSpan[1] != null)
-                    {
-                        rubyVal += "<ruby><rb>";
-                        rubyVal += $.trim($(contentSpan[1]).contents().filter(function ()
-                        {
-                            return this.nodeType == 3;
-                        })[0].nodeValue) + "</rb><rt>";
-
-                        rubyVal += $(contentSpan[1]).contents()[0].innerHTML + "</rt></ruby>";
-
-                        //After kanji goes  hiragana/katakana if not return
-                        if (contentText[2] != null)
-                        {
-                            rubyVal += $.trim(contentText[2].nodeValue);
-                            if (contentSpan[2] != null)
-                            {
-                                //TODO THIRD
-                            } else
-                            {
-                                if (debug)
-                                {
-                                    console.log("Here actua this: " + rubyVal);
-                                }
-                                return rubyVal;
-                            }
-                        } else
-                        {
-                            if (debug)
-                            {
-                                console.log("Here actua this: " + rubyVal);
-                            }
-                            return rubyVal;
-                        }
-                    } else
-                    {
-                        if (debug)
-                        {
-                            console.log("Here actua this: " + rubyVal);
-                        }
-                        return rubyVal;
-                    }
-                } else
-                {
-                    if (debug)
-                    {
-                        console.log("Here actua this: " + rubyVal);
-                    }
-                    return rubyVal;
-                }
-
-                if (debug)
-                {
-                    console.log("value first:" + contentText[0].nodeValue);
-                    console.log(contentSpan);
-                    console.log(contentSpan[0].innerHTML);
-                }
-            }
-
-            if (debug)
-            {
-                console.log(contentText);
-                console.log("IT DOES");
-                console.log($("awq_question").contents());
-                //rubyVal = $("awq_question").contents().filter(function ()
-                //{
-                //    return this.nodeType == 3;
-                //})[0].nodeValue;
-                console.log("Here actua this: " + rubyVal);
-            }
-        } else
-        {
-            return $.trim($("awq_question").html());
-        }
     }
 
     function getTrueAnswer(sFor)
@@ -371,6 +212,30 @@ $(document).ready(function () {
             }
         }
         ramdomButton();
+        buttonsEvent();
+    }
+
+    function buttonsEvent()
+    {
+        $("#ansbuta").click(function () {
+            setTimeout(function () {
+                if (debug) {
+                    console.log("Button check");
+                }
+                $("#ease1").click(function () {
+                    otherEvent();
+                });
+                $("#ease2").click(function () {
+                    otherEvent();
+                });
+                $("#ease3").click(function () {
+                    otherEvent();
+                });
+                $("#ease4").click(function () {
+                    otherEvent();
+                });
+            }, 500);
+        });
     }
 
     function otherEvent()
@@ -381,7 +246,7 @@ $(document).ready(function () {
         }
         searchFor = "";
         //searchFor = $("awq_question").html();
-        searchFor = searchQuestion();
+        searchFor = $.trim($("awq_question").html());
         if (debug) {
             console.log("searchFor:" + searchFor);
             console.log($("awq").text().length);
@@ -392,7 +257,7 @@ $(document).ready(function () {
                 if ($("awq").text().length === 0) {
                     setTimeout(function () {
                         //searchFor = $("awq_question").html();
-                        searchFor = searchQuestion();
+                        searchFor = $.trim($("awq_question").html());
                         if (debug) {
                             console.log("searchFor:::" + searchFor);
                         }
@@ -400,7 +265,7 @@ $(document).ready(function () {
                     }, 3000);
                 } else {
                     //searchFor = $("awq_question").html();
-                    searchFor = searchQuestion();
+                    searchFor = $.trim($("awq_question").html());
                     if (debug) {
                         console.log("searchFor::" + searchFor);
                     }
@@ -457,15 +322,21 @@ $(document).ready(function () {
 
     function uiButtons()
     {
-        //const sell = document.querySelectorAll("button.awq_LeftSide");
-        //const selr = document.querySelectorAll("button.awq_RightSide");
-        const sel = document.querySelectorAll("button.awq_btn");
-
-        for (var i = 0; i < buttons.length; i++)
+        const sell = document.querySelectorAll("button.awq_LeftSide");
+        const selr = document.querySelectorAll("button.awq_RightSide");
+        for (var i = 0; i < buttons.length / 2; i++)
         {
-            $(sel[i]).html(buttons[i]);
-            if (debug)
-            {
+            $(sell[i]).html(buttons[i]);
+            if (debug) {
+                //console.log(sel[i]);
+            }
+        }
+
+        buttons.reverse();
+
+        for (var i = 0; i < buttons.length / 2; i++) {
+            $(selr[i]).html(buttons[i]);
+            if (debug) {
                 //console.log(sel[i]);
             }
         }
@@ -475,8 +346,18 @@ $(document).ready(function () {
 
     function checkPresedButtons()
     { 
-        $(".awq_btn").removeClass("awq_true");
-        $(".awq_btn").removeClass("awq_false");
+        $(".awq_LeftSide, .awq_RightSide").removeClass("awq_true");
+        $(".awq_LeftSide, .awq_RightSide").removeClass("awq_false");
+
+        $(".awq_LeftSide, .awq_RightSide").click(function ()
+        {
+            if (trueAnswer == $(this).text()) {
+                $(this).addClass("awq_true");
+            } else
+            {
+                $(this).addClass("awq_false");
+            }
+        });
     }
 
     console.log("AnkiWeb Quiz v" + GM_info.script.version + " Initialized"); 
@@ -488,15 +369,12 @@ $(document).ready(function () {
 // ------------
 
 /* TODO STARTS
-✓    1)Make it only one element of buttons  //DONE 0.0.9
-        1.1)Increase numbers of buttons to 10-12
+    1)Make it only one element of buttons + increase numbers of buttons to 10-12
     2)Make it limit of length answer and put whole in attribute title
     3)Make it settings
         3.1)Debug 
         3.2)Add txt file ***RESEARCH NEEDED***
             3.2.1)Choose them
         3.3)Make it always show quiz
-✓    4)Make it full functionality of Japanese deck, partial done in 0.0.8    //DONE 0.0.9 Happy with that :)
-    5)Search question in between tags <awq_question> and </awq_question> not in whole sentence
-    6)TODO for loop in finding question
+    4)Make it full functionality of Japanese deck, partial done in 0.0.8
 TODO ENDS */
