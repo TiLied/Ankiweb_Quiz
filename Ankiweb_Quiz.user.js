@@ -6,13 +6,13 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.1.0
+// @version     0.1.1
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @resource    ankiDeck test5.txt
+// @resource    ankiDeck Japanese.txt
 // ==/UserScript==
 
 var originAnkiDeck = GM_getResourceText("ankiDeck");
@@ -277,16 +277,35 @@ $(document).ready(function () {
         {
             if (debug)
             {
-                console.log("html:" + $(this).html());
-                console.log("true:" + trueAnswer);
+                if ($(this).attr("title"))
+                {
+                    console.log("html:" + $(this).attr("title"));
+                    console.log("true:" + trueAnswer);
+                } else
+                {
+                    console.log("html:" + $(this).html);
+                    console.log("true:" + trueAnswer);
+                }
             }
 
-            if (trueAnswer == $(this).html())
+            if ($(this).attr("title"))
             {
-                $(this).addClass("awq_true");
+                if (trueAnswer == $(this).attr("title"))
+                {
+                    $(this).addClass("awq_true");
+                } else
+                {
+                    $(this).addClass("awq_false");
+                }
             } else
             {
-                $(this).addClass("awq_false");
+                if (trueAnswer == $(this).html())
+                {
+                    $(this).addClass("awq_true");
+                } else
+                {
+                    $(this).addClass("awq_false");
+                }
             }
         });
     }
