@@ -6,9 +6,13 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.0.7
+// @version     0.1.0
 // @grant       GM_getResourceText
-// @grant       GM_getResourceURL
+// @grant       GM_listValues
+// @grant       GM_deleteValue
+// @grant       GM_getValue
+// @grant       GM_setValue
+// @resource    ankiDeck PUT_HERE_YOUR_DECK.txt
 // ==/UserScript==
 
 var originAnkiDeck = GM_getResourceText("ankiDeck");
@@ -26,15 +30,15 @@ var inEndAnswer = "</awq_answer>";
 var trueId, id;
 var buttons = [];
 var tempArr = [];
-var debug = false;
+var debug;
+var rubyVal;
+var amountButtons;
+
 
 Main();
 
 function Main()
 {
-    //stringArray = $.makeArray(originAnkiDeck);
-    //console.log(stringArray);
-
     inB = findIndexes(inBstring, originAnkiDeck);
     inE = findIndexes(inEstring, originAnkiDeck);
     console.log(inB);
@@ -47,6 +51,92 @@ function Main()
     }
     console.log(tempStrings);
     cssAdd();
+    //setSettings();
+}
+
+//Settings
+function setSettings()
+{
+    const settings = $("<li class=nav-item></li>").html("<a id=awq_settings class=nav-link>Settings Ankiweb Quiz</a> \
+        <div id=awq_settingsPanel class=awq_settingsP>\
+        <form> \
+        <br> \
+        Debug: <input type=checkbox name=debug id=awq_debug></input>\
+        </form>\
+        <button class=awq_style>Hide</button>\
+        <button class=awq_style>Yep</button>\
+        </div>\
+        ");
+
+
+    $(".navbar-nav:first").append(settings);
+    $("#awq_settings").addClass("awq_settings");
+    $("#awq_settingsPanel").hide();
+    setEventSettings();
+    loadSettings();
+}
+
+function loadSettings()
+{
+    var vals = [];
+    for (var i = 0; i < GM_listValues().length; i++)
+    {
+        vals[i] = GM_listValues()[i];
+    }
+
+    if (vals.length === 0)
+    {
+        GM_setValue("awq_debug", false);
+        debug = false;
+        $("#awq_debug").prop("checked", false);
+        //console.log("debug: " + debug);
+    }
+
+    //console.log(vals);
+
+    for (var i = 0; i < vals.length; i++)
+    {
+        if (vals[i] === "awq_debug")
+        {
+            debug = GM_getValue("awq_debug");
+            if (debug)
+            {
+                $("#awq_debug").prop("checked", debug);
+            } else
+            {
+                $("#awq_debug").prop("checked", debug);
+            }
+        } else
+        {
+            //GM_setValue("awq_debug", false);
+            //debug = false;
+            //$("#awq_debug").prop("checked", false);
+            //console.log("debug: " + debug);
+        }
+    }
+
+    if (debug)
+    {
+        for (var i = 0; i < vals.length; i++)
+        {
+            console.log(vals[i] + " val:" + GM_getValue(vals[i]));
+        }
+    }
+}
+
+function setEventSettings()
+{
+    $("#awq_settings").click(function ()
+    {
+        $("#awq_settingsPanel").toggle();
+    });
+
+    $("#awq_debug").change(function ()
+    {
+        GM_setValue("awq_debug", $(this).prop("checked"));
+        debug = $(this).prop("checked");
+        alert("Settings has been changed. Please reload the page.");
+    });
 }
 
 function findIndexes(searchStr, str, caseSensitive)
@@ -70,16 +160,20 @@ function findIndexes(searchStr, str, caseSensitive)
 //css styles adds
 function cssAdd()
 {
-    $("head").append($("<style type=text/css></style>").text("button.awq_LeftSide { \
-        float:left;  \
+    $("head").append($("<style type=text/css></style>").text("button.awq_btn { \
+         \
         }"));
 
-    $("head").append($("<style type=text/css></style>").text("button.awq_RightSide { \
-        float:right;  \
+    $("head").append($("<style type=text/css></style>").text("a.awq_settings { \
+        cursor: pointer;\
+        }"));
+
+    $("head").append($("<style type=text/css></style>").text("div.awq_settingsP { \
+        position:absolute; width:300px; background-color: #fff; border-color: #eee!important; border-radius: .3rem; border: 2px solid transparent; z-index: 150;\
         }"));
 
     $("head").append($("<style type=text/css></style>").text("button.awq_style { \
-        cursor: pointer; color: #fff; background-color: #0275d8; border-color: #0275d8; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent;\
+        cursor: pointer; color: #fff; background-color: #0275d8; border-color: #0275d8; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent; max-width:200px; margin:5px;\
         }"));
 
     $("head").append($("<style type=text/css></style>").text("button.awq_style:hover { \
@@ -87,7 +181,7 @@ function cssAdd()
         }"));
 
     $("head").append($("<style type=text/css></style>").text("div.awq_rstyle { \
-        width:500px; margin-top:30px;\
+        width:100%; margin-top:30px; z-index: 100;\
         }"));
 
     $("head").append($("<style type=text/css></style>").text("button.awq_true { \
@@ -116,12 +210,12 @@ $(document).ready(function () {
         setTimeout(function ()
         {
             setUI();
-            searchFor = $("awq_question").text();
-            if (debug) {
+            searchFor = searchQuestion();
+            if (debug)
+            {
                 console.log("searchFor:" + searchFor);
             }
             getTrueAnswer(searchFor);
-            //alert("Settings has been changed. Now brackets hiding.");
             if (debug) {
                 console.log('Study Click');
             }
@@ -131,35 +225,221 @@ $(document).ready(function () {
     function setUI()
     {
         const buttonP = $("<button id=awq_quiz class=btn style=margin-left:4px></button>").text("Quiz");
-        const buttonL = $("<div class=awq_rstyle style=float:left></div>").html("<button class=awq_LeftSide></button><button class=awq_LeftSide></button><button class=awq_LeftSide></button><button class=awq_LeftSide></button>");
-        const buttonR = $("<div class=awq_rstyle style=float:right></div>").html("<button class=awq_RightSide></button><button class=awq_RightSide></button><button class=awq_RightSide></button><button class=awq_RightSide></button>");
-        $("#qa_box").before(buttonL);
-        $("#qa_box").before(buttonR);
+        const button = $("<div class=awq_rstyle></div>").html("<button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button>");
+
+        $(".pt-1").before("<br>");
+        $(".pt-1").before(button);
 
         $("#leftStudyMenu").after(buttonP);
 
-        settingsPanel();
+        settingsEvents();
 
         $("#awq_quiz").addClass("btn-secondary");
-        $(".awq_LeftSide").addClass("awq_style");
-        $(".awq_RightSide").addClass("awq_style");
+        $(".awq_btn").addClass("awq_style");
         $(".awq_rstyle").hide();
     }
 
-    function settingsPanel() {
+    function settingsEvents()
+    {
+
         $("#awq_quiz").click(function () {
             $(".awq_rstyle").toggle();
         });
+
+        $("#ansbuta").click(function ()
+        {
+            setTimeout(function ()
+            {
+                if (debug)
+                {
+                    console.log("Button check");
+                }
+                $("#ease1").click(function ()
+                {
+                    otherEvent();
+                });
+                $("#ease2").click(function ()
+                {
+                    otherEvent();
+                });
+                $("#ease3").click(function ()
+                {
+                    otherEvent();
+                });
+                $("#ease4").click(function ()
+                {
+                    otherEvent();
+                });
+            }, 500);
+        });
+
+        $(".awq_btn").click(function ()
+        {
+            if (debug)
+            {
+                console.log("html:" + $(this).html());
+                console.log("true:" + trueAnswer);
+            }
+
+            if (trueAnswer == $(this).html())
+            {
+                $(this).addClass("awq_true");
+            } else
+            {
+                $(this).addClass("awq_false");
+            }
+        });
     }
 
-    function getTrueAnswer(sFor) {
+    function escapeRegExp(string)
+    {
+        return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+    }
+
+    function searchQuestion()
+    {
+        if (debug)
+        {
+            console.log("span: ");
+            console.log($("awq_question").has("span"));
+        }
+        if ($("awq_question").has("span").length >= 1)
+        {
+            var contentText = $("awq_question").contents().filter(function ()
+            {
+                return this.nodeType == 3;
+            });
+
+            var contentSpan = $("awq_question").contents().filter(function ()
+            {
+                return this.nodeType == 1;
+            });
+
+            if (debug)
+            {
+                console.log(contentText);
+                console.log(contentSpan);
+            }
+
+            rubyVal = "";
+
+
+            //This is if first goes hiragana/katakana
+            if (contentText[0].nodeValue != "")
+            {
+                rubyVal = $.trim(contentText[0].nodeValue);
+                rubyVal += "<ruby><rb>";
+
+                rubyVal += $.trim($(contentSpan[0]).contents().filter(function ()
+                {
+                    return this.nodeType == 3;
+                })[0].nodeValue) + "</rb><rt>";
+
+                rubyVal += $(contentSpan[0]).contents()[0].innerHTML + "</rt></ruby>";
+
+                //After kanji goes  hiragana/katakana if not return
+                if (contentText[1] != null)
+                {
+                    rubyVal += $.trim(contentText[1].nodeValue);
+                    if (contentSpan[1] != null)
+                    {
+                        rubyVal += "<ruby><rb>";
+                        rubyVal += $.trim($(contentSpan[1]).contents().filter(function ()
+                        {
+                            return this.nodeType == 3;
+                        })[0].nodeValue) + "</rb><rt>";
+
+                        rubyVal += $(contentSpan[1]).contents()[0].innerHTML + "</rt></ruby>";
+
+                        //After kanji goes  hiragana/katakana if not return
+                        if (contentText[2] != null)
+                        {
+                            rubyVal += $.trim(contentText[2].nodeValue);
+                            if (contentSpan[2] != null)
+                            {
+                                //TODO THIRD
+                            } else
+                            {
+                                if (debug)
+                                {
+                                    console.log("Here actua this: " + rubyVal);
+                                }
+                                return rubyVal;
+                            }
+                        } else
+                        {
+                            if (debug)
+                            {
+                                console.log("Here actua this: " + rubyVal);
+                            }
+                            return rubyVal;
+                        }
+                    } else
+                    {
+                        if (debug)
+                        {
+                            console.log("Here actua this: " + rubyVal);
+                        }
+                        return rubyVal;
+                    }
+                } else
+                {
+                    if (debug)
+                    {
+                        console.log("Here actua this: " + rubyVal);
+                    }
+                    return rubyVal;
+                }
+
+                if (debug)
+                {
+                    console.log("value first:" + contentText[0].nodeValue);
+                    console.log(contentSpan);
+                    console.log(contentSpan[0].innerHTML);
+                }
+            }
+
+            if (debug)
+            {
+                console.log(contentText);
+                console.log("IT DOES");
+                console.log($("awq_question").contents());
+                //rubyVal = $("awq_question").contents().filter(function ()
+                //{
+                //    return this.nodeType == 3;
+                //})[0].nodeValue;
+                console.log("Here actua this: " + rubyVal);
+            }
+        } else
+        {
+            return $.trim($("awq_question").html());
+        }
+    }
+
+    function getTrueAnswer(sFor)
+    {
+        var regex = '(^|\\s|\\b|(\\>))';
+        regex += escapeRegExp(sFor);
+        regex += '($|\\s|\\b|(\\<))';
+
+        if (debug)
+        {
+            console.log(regex);
+        }
+
         for (var i = 0; i < tempStrings.length; i++) {
-            //console.log('sFor =' + sFor + "leng " + sFor.length + " debug : " + tempStrings[i].includes(sFor));
-            if (tempStrings[i].includes(sFor)) {
+            //console.log('sFor =' + sFor + " leng " + sFor.length + " debug : " + new RegExp(regex, "g").test(tempStrings[i]));
+            //contains = tempStrings[i].matches(".*\\bram\\b.*");
+            if (new RegExp(regex, "g").test(tempStrings[i]))
+            {
                 const str = tempStrings[i].toString();
-                trueAnswer = str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer));
+                trueAnswer = $.trim(str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer)));
                 trueId = i;
-                if (debug) {
+                if (debug)
+                {
+                    //console.log(tempStrings[i - 1]);
+                    console.log(str);
+                    //console.log(tempStrings[i + 1]);
                     console.log("True answer : " + trueAnswer + " id trueAnsw = " + trueId);
                 }
                 getFalseAnswers(trueId);
@@ -188,30 +468,6 @@ $(document).ready(function () {
             }
         }
         ramdomButton();
-        buttonsEvent();
-    }
-
-    function buttonsEvent()
-    {
-        $("#ansbuta").click(function () {
-            setTimeout(function () {
-                if (debug) {
-                    console.log("Button check");
-                }
-                $("#ease1").click(function () {
-                    otherEvent();
-                });
-                $("#ease2").click(function () {
-                    otherEvent();
-                });
-                $("#ease3").click(function () {
-                    otherEvent();
-                });
-                $("#ease4").click(function () {
-                    otherEvent();
-                });
-            }, 500);
-        });
     }
 
     function otherEvent()
@@ -221,7 +477,8 @@ $(document).ready(function () {
             console.log("---------------");
         }
         searchFor = "";
-        searchFor = $("awq_question").text();
+        //searchFor = $("awq_question").html();
+        searchFor = searchQuestion();
         if (debug) {
             console.log("searchFor:" + searchFor);
             console.log($("awq").text().length);
@@ -231,14 +488,16 @@ $(document).ready(function () {
             setTimeout(function () {
                 if ($("awq").text().length === 0) {
                     setTimeout(function () {
-                        searchFor = $("awq_question").text();
+                        //searchFor = $("awq_question").html();
+                        searchFor = searchQuestion();
                         if (debug) {
                             console.log("searchFor:::" + searchFor);
                         }
                         getTrueAnswer(searchFor);
                     }, 3000);
                 } else {
-                    searchFor = $("awq_question").text();
+                    //searchFor = $("awq_question").html();
+                    searchFor = searchQuestion();
                     if (debug) {
                         console.log("searchFor::" + searchFor);
                     }
@@ -283,34 +542,45 @@ $(document).ready(function () {
             console.log(allAnswers);
         }
         for (var i = 0; i < allAnswers.length; i++) {
-            buttons[i] = allAnswers[get_rand(allAnswers)];
+            buttons[i] = $.trim(allAnswers[get_rand(allAnswers)]);
         }
         if (debug) {
             console.log("Random order :) = " + buttons);
             // console.log($(".awq_LeftSide").html());
         }
         uiButtons();
-        //settingsPanel();
     }
 
     function uiButtons()
     {
-        const sell = document.querySelectorAll("button.awq_LeftSide");
-        const selr = document.querySelectorAll("button.awq_RightSide");
-        for (var i = 0; i < buttons.length / 2; i++)
+        const sel = document.querySelectorAll("button.awq_btn");
+        if (debug)
         {
-            $(sell[i]).text(buttons[i]);
-            if (debug) {
-                //console.log(sel[i]);
-            }
+            console.log("*HERE UI BUTTONS :");
         }
 
-        buttons.reverse();
+        for (var i = 0; i < buttons.length; i++)
+        {
+            //Delete arttribute
+            if ($(sel[i]).attr("title"))
+            {
+                $(sel[i]).removeAttr("title");
+            }
 
-        for (var i = 0; i < buttons.length / 2; i++) {
-            $(selr[i]).text(buttons[i]);
-            if (debug) {
+            if (buttons[i].length <= 40 || buttons[i].includes("</ruby>"))
+            {
+                $(sel[i]).html(buttons[i]);
+            } else
+            {
+                $(sel[i]).html(buttons[i].slice(0, 40) + "...");
+                $(sel[i]).attr("title", buttons[i]);
+            }
+            
+            if (debug)
+            {
                 //console.log(sel[i]);
+                console.log(buttons[i] + " Length: " + buttons[i].length);
+                console.log(buttons[i].includes("</ruby>"));
             }
         }
 
@@ -319,19 +589,28 @@ $(document).ready(function () {
 
     function checkPresedButtons()
     { 
-        $(".awq_LeftSide, .awq_RightSide").removeClass("awq_true");
-        $(".awq_LeftSide, .awq_RightSide").removeClass("awq_false");
-
-        $(".awq_LeftSide, .awq_RightSide").click(function ()
-        {
-            if (trueAnswer == $(this).text()) {
-                $(this).addClass("awq_true");
-            } else
-            {
-                $(this).addClass("awq_false");
-            }
-        });
+        $(".awq_btn").removeClass("awq_true");
+        $(".awq_btn").removeClass("awq_false");
     }
 
     console.log("AnkiWeb Quiz v" + GM_info.script.version + " Initialized"); 
 });
+
+
+// ------------
+//  TODO
+// ------------
+
+/* TODO STARTS
+✓    1)Make it only one element of buttons  //DONE 0.0.9
+        1.1)Increase numbers of buttons to 10-12(optional through settings???)
+✓    2)Make it limit of length answer and put whole in attribute title  //DONE 0.1.0
+    3)Make it settings, almost done in 0.1.0
+✓        3.1)Debug   //DONE 0.1.0 
+        3.2)Add txt file ***RESEARCH NEEDED***
+            3.2.1)Choose them
+        3.3)Make it always show quiz
+✓    4)Make it full functionality of Japanese deck, partial done in 0.0.8    //DONE 0.0.9 Happy with that :)
+    5)Search question in between tags <awq_question> and </awq_question> not in whole sentence
+    6)TODO for loop in finding question
+TODO ENDS */
