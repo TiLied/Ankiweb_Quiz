@@ -12,7 +12,7 @@
 // @grant       GM_deleteValue
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @resource    ankiDeck test5.txt
+// @resource    ankiDeck PUTHEREYOURDECK.txt
 // ==/UserScript==
 
 var originAnkiDeck = GM_getResourceText("ankiDeck");
