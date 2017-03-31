@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.1.1
+// @version     0.1.2
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -437,9 +437,11 @@ $(document).ready(function () {
 
     function getTrueAnswer(sFor)
     {
-        var regex = '(^|\\s|\\b|(\\>))';
+        var regex = '(^|\\s|\\b|(n\\>))';
+        var tempQuestion;
+        var strQ;
         regex += escapeRegExp(sFor);
-        regex += '($|\\s|\\b|(\\<))';
+        regex += '($|\\s|\\b|(\\<\\/a))';
 
         if (debug)
         {
@@ -449,6 +451,11 @@ $(document).ready(function () {
         for (var i = 0; i < tempStrings.length; i++) {
             //console.log('sFor =' + sFor + " leng " + sFor.length + " debug : " + new RegExp(regex, "g").test(tempStrings[i]));
             //contains = tempStrings[i].matches(".*\\bram\\b.*");
+            //tempQuestion = '';
+            //strQ = '';
+            //strQ = tempStrings[i].toString();
+            //tempQuestion = $.trim(str.slice(str.indexOf("<awq_question>") + 14, str.indexOf("</awq_question>")));
+            //console.log(tempQuestion);
             if (new RegExp(regex, "g").test(tempStrings[i]))
             {
                 const str = tempStrings[i].toString();
@@ -458,6 +465,7 @@ $(document).ready(function () {
                 {
                     //console.log(tempStrings[i - 1]);
                     console.log(str);
+                    console.log(tempQuestion);
                     //console.log(tempStrings[i + 1]);
                     console.log("True answer : " + trueAnswer + " id trueAnsw = " + trueId);
                 }
@@ -630,6 +638,6 @@ $(document).ready(function () {
             3.2.1)Choose them
         3.3)Make it always show quiz
 ✓    4)Make it full functionality of Japanese deck, partial done in 0.0.8    //DONE 0.0.9 Happy with that :)
-    5)Search question in between tags <awq_question> and </awq_question> not in whole sentence
+    5)Search question in between tags <awq_question> and </awq_question> not in whole sentence, almost done in 0.1.2
     6)TODO for loop in finding question
 TODO ENDS */
