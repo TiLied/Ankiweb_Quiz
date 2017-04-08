@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.1.2
+// @version     0.1.3
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -15,25 +15,32 @@
 // @resource    ankiDeck PUT_HERE_YOUR_DECK.txt
 // ==/UserScript==
 
-var originAnkiDeck = GM_getResourceText("ankiDeck");
-var stringArray = [];
-var tempStrings = [];
-var searchFor;
-var trueAnswer;
-var falseAnswers = [];
-var inB = [];
-var inE = [];
-var inBstring = "<awq>";
-var inEstring = "</awq>";
-var inBegAnswer = "<awq_answer>";
-var inEndAnswer = "</awq_answer>";
-var trueId, id;
-var buttons = [];
-var tempArr = [];
-var debug;
-var rubyVal;
-var amountButtons;
+//not empty val
+var originAnkiDeck = GM_getResourceText("ankiDeck"),
+    inBstring = "<awq>",
+    inEstring = "</awq>",
+    inBegAnswer = "<awq_answer>",
+    inEndAnswer = "</awq_answer>";
 
+//arrays
+var stringArray = [],
+    tempStrings = [],
+    falseAnswers = [],
+    inB = [],
+    inE = [],
+    buttons = [],
+    tempArr = [];
+
+//empty val
+var searchFor,
+    trueAnswer,
+    trueId, 
+    id,
+    rubyVal;
+
+//prefs
+var amountButtons,
+    debug;
 
 Main();
 
