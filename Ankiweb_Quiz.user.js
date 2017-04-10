@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.1.3
+// @version     0.1.4
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -46,8 +46,8 @@ Main();
 
 function Main()
 {
-    inB = findIndexes(inBstring, originAnkiDeck);
-    inE = findIndexes(inEstring, originAnkiDeck);
+    inB = FindIndexes(inBstring, originAnkiDeck);
+    inE = FindIndexes(inEstring, originAnkiDeck);
     console.log(inB);
     console.log(inE);
 
@@ -57,12 +57,12 @@ function Main()
         //console.log(tempStrings[i]);
     }
     console.log(tempStrings);
-    cssAdd();
-    //setSettings();
+    CssAdd();
+    //SetSettings();
 }
 
 //Settings
-function setSettings()
+function SetSettings()
 {
     const settings = $("<li class=nav-item></li>").html("<a id=awq_settings class=nav-link>Settings Ankiweb Quiz</a> \
         <div id=awq_settingsPanel class=awq_settingsP>\
@@ -79,11 +79,11 @@ function setSettings()
     $(".navbar-nav:first").append(settings);
     $("#awq_settings").addClass("awq_settings");
     $("#awq_settingsPanel").hide();
-    setEventSettings();
-    loadSettings();
+    SetEventSettings();
+    LoadSettings();
 }
 
-function loadSettings()
+function LoadSettings()
 {
     var vals = [];
     for (var i = 0; i < GM_listValues().length; i++)
@@ -131,7 +131,7 @@ function loadSettings()
     }
 }
 
-function setEventSettings()
+function SetEventSettings()
 {
     $("#awq_settings").click(function ()
     {
@@ -146,7 +146,7 @@ function setEventSettings()
     });
 }
 
-function findIndexes(searchStr, str, caseSensitive)
+function FindIndexes(searchStr, str, caseSensitive)
 {
     var searchStrLen = searchStr.length;
     if (searchStrLen == 0) {
@@ -165,7 +165,7 @@ function findIndexes(searchStr, str, caseSensitive)
 }
 
 //css styles adds
-function cssAdd()
+function CssAdd()
 {
     $("head").append($("<style type=text/css></style>").text("button.awq_btn { \
          \
@@ -216,20 +216,20 @@ $(document).ready(function () {
     $("#studynow").click(function () {
         setTimeout(function ()
         {
-            setUI();
-            searchFor = searchQuestion();
+            SetUI();
+            searchFor = SearchQuestion();
             if (debug)
             {
                 console.log("searchFor:" + searchFor);
             }
-            getTrueAnswer(searchFor);
+            GetTrueAnswer(searchFor);
             if (debug) {
                 console.log('Study Click');
             }
         }, 1500);
     });
 
-    function setUI()
+    function SetUI()
     {
         const buttonP = $("<button id=awq_quiz class=btn style=margin-left:4px></button>").text("Quiz");
         const button = $("<div class=awq_rstyle></div>").html("<button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button>");
@@ -239,14 +239,14 @@ $(document).ready(function () {
 
         $("#leftStudyMenu").after(buttonP);
 
-        settingsEvents();
+        SettingsEvents();
 
         $("#awq_quiz").addClass("btn-secondary");
         $(".awq_btn").addClass("awq_style");
         $(".awq_rstyle").hide();
     }
 
-    function settingsEvents()
+    function SettingsEvents()
     {
 
         $("#awq_quiz").click(function () {
@@ -263,19 +263,19 @@ $(document).ready(function () {
                 }
                 $("#ease1").click(function ()
                 {
-                    otherEvent();
+                    OtherEvent();
                 });
                 $("#ease2").click(function ()
                 {
-                    otherEvent();
+                    OtherEvent();
                 });
                 $("#ease3").click(function ()
                 {
-                    otherEvent();
+                    OtherEvent();
                 });
                 $("#ease4").click(function ()
                 {
-                    otherEvent();
+                    OtherEvent();
                 });
             }, 500);
         });
@@ -317,12 +317,12 @@ $(document).ready(function () {
         });
     }
 
-    function escapeRegExp(string)
+    function EscapeRegExp(string)
     {
         return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
     }
 
-    function searchQuestion()
+    function SearchQuestion()
     {
         if (debug)
         {
@@ -442,12 +442,12 @@ $(document).ready(function () {
         }
     }
 
-    function getTrueAnswer(sFor)
+    function GetTrueAnswer(sFor)
     {
         var regex = '(^|\\s|\\b|(n\\>))';
         var tempQuestion;
         var strQ;
-        regex += escapeRegExp(sFor);
+        regex += EscapeRegExp(sFor);
         regex += '($|\\s|\\b|(\\<\\/a))';
 
         if (debug)
@@ -476,16 +476,16 @@ $(document).ready(function () {
                     //console.log(tempStrings[i + 1]);
                     console.log("True answer : " + trueAnswer + " id trueAnsw = " + trueId);
                 }
-                getFalseAnswers(trueId);
+                GetFalseAnswers(trueId);
                 break;
             }
         }
     }
 
-    function getFalseAnswers(trueId) {
+    function GetFalseAnswers(trueId) {
         tempArr.length = 0;
         for (var i = 0; i < 7; i++) {
-            id = get_rand(tempStrings);
+            id = GetRand(tempStrings);
             if (id != trueId) {
                 if (debug) {
                     console.log(tempStrings[id]);
@@ -497,14 +497,14 @@ $(document).ready(function () {
                     //console.log("inBegAnswer: " + str.indexOf(inBegAnswer) + " : " + str.indexOf(inEndAnswer) + " inEndAnswer");
                 }
             } else {
-                id = get_rand(tempStrings);
+                id = GetRand(tempStrings);
                 i--;
             }
         }
-        ramdomButton();
+        RamdomButton();
     }
 
-    function otherEvent()
+    function OtherEvent()
     {
         if (debug) {
             console.log("Button click");
@@ -512,7 +512,7 @@ $(document).ready(function () {
         }
         searchFor = "";
         //searchFor = $("awq_question").html();
-        searchFor = searchQuestion();
+        searchFor = SearchQuestion();
         if (debug) {
             console.log("searchFor:" + searchFor);
             console.log($("awq").text().length);
@@ -523,44 +523,44 @@ $(document).ready(function () {
                 if ($("awq").text().length === 0) {
                     setTimeout(function () {
                         //searchFor = $("awq_question").html();
-                        searchFor = searchQuestion();
+                        searchFor = SearchQuestion();
                         if (debug) {
                             console.log("searchFor:::" + searchFor);
                         }
-                        getTrueAnswer(searchFor);
+                        GetTrueAnswer(searchFor);
                     }, 3000);
                 } else {
                     //searchFor = $("awq_question").html();
-                    searchFor = searchQuestion();
+                    searchFor = SearchQuestion();
                     if (debug) {
                         console.log("searchFor::" + searchFor);
                     }
-                    getTrueAnswer(searchFor);
+                    GetTrueAnswer(searchFor);
                 }
             }, 1000);
         } else {
-            getTrueAnswer(searchFor);
+            GetTrueAnswer(searchFor);
         }
     }
 
     //random functions
-    function in_array(array, el) {
+    function InArray(array, el) {
         for (var i = 0 ; i < array.length; i++)
             if (array[i] == el) return true;
         return false;
     }
 
-    function get_rand(array) {
+    function GetRand(array) {
         var rand = Math.floor(Math.random() * array.length);
-        if (!in_array(tempArr, rand)) {
+        if (!InArray(tempArr, rand)) {
             tempArr.push(rand);
             return rand;
         }
-        return get_rand(array);
+        return GetRand(array);
     }
     //end of random functions
 
-    function ramdomButton()
+    function RamdomButton()
     {
         buttons.length = 0;
         tempArr.length = 0;
@@ -576,16 +576,16 @@ $(document).ready(function () {
             console.log(allAnswers);
         }
         for (var i = 0; i < allAnswers.length; i++) {
-            buttons[i] = $.trim(allAnswers[get_rand(allAnswers)]);
+            buttons[i] = $.trim(allAnswers[GetRand(allAnswers)]);
         }
         if (debug) {
             console.log("Random order :) = " + buttons);
             // console.log($(".awq_LeftSide").html());
         }
-        uiButtons();
+        UiButtons();
     }
 
-    function uiButtons()
+    function UiButtons()
     {
         const sel = document.querySelectorAll("button.awq_btn");
         if (debug)
@@ -618,10 +618,10 @@ $(document).ready(function () {
             }
         }
 
-        checkPresedButtons();
+        CheckPresedButtons();
     }
 
-    function checkPresedButtons()
+    function CheckPresedButtons()
     { 
         $(".awq_btn").removeClass("awq_true");
         $(".awq_btn").removeClass("awq_false");
