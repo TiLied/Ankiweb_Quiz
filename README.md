@@ -8,9 +8,9 @@ Script which shows quiz on ankiweb. Tested with [Japanese Visual Novel, Anime, M
 
 ![Example](https://i.imgur.com/JHpfvcN.png)
 
-### installation
-Only instal script it's not enough, so go trough this steps to make sure that everything working install correct
-1. After install script, go in anki app choose Tools-Manage Note Types 
+### Installation
+Only installing script it's not enough, so go trough this steps to make sure that everything working install correct
+1. After installing script, go in anki app choose Tools-Manage Note Types 
 
 ![1](https://i.imgur.com/otKlRdV.png)
 
@@ -43,9 +43,10 @@ Only instal script it's not enough, so go trough this steps to make sure that ev
 8. Open `AnkiWeb_Quiz.user.js` edit PUT_HERE_YOUR_DECK.txt on `deck_name.txt`. In my example it is `Japanese.txt`
 ![8](https://i.imgur.com/Nck39hS.png)
 
-9)Thats it, go in Ankiweb and enjoy your stay... :)
+9. Thats it, go in Ankiweb and enjoy your stay... :)
 
 ### Cons
+* Well greasemonkey not updating @resource file, thats bad, you can change name of @resource ankideck on @resource ankideck1 etc. DO NOT FORGET CHANGE `var originAnkiDeck = GM_getResourceText("ankiDeck")`.
 * If update released, you need change script (Not good, maybe somehow change this ***Need research***)
 * Add something in deck, need repeat from `4 step`
 
