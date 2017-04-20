@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.1.4
+// @version     0.1.5
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -290,8 +290,11 @@ $(document).ready(function () {
                     console.log("true:" + trueAnswer);
                 } else
                 {
-                    console.log("html:" + $(this).html);
+                    console.log("html:" + $(this).html());
+                    console.log("text:" + $(this).text());
+                    console.log("------------------------");
                     console.log("true:" + trueAnswer);
+                    console.log("************************");
                 }
             }
 
@@ -306,7 +309,7 @@ $(document).ready(function () {
                 }
             } else
             {
-                if (trueAnswer == $(this).html())
+                if (trueAnswer == $(this).html() || trueAnswer == $(this).text())
                 {
                     $(this).addClass("awq_true");
                 } else
@@ -438,8 +441,21 @@ $(document).ready(function () {
             }
         } else
         {
-            return $.trim($("awq_question").html());
+            return $.trim($("awq_question").text());
         }
+    }
+
+    //Replace wrong <br>'s or other html tags
+    function ReplaceString(str)
+    {
+        var trueString = str;
+
+        while (trueString.search("<br />") != -1)
+        {
+            trueString = str.replace("<br />", "<br>");
+        }
+
+        return trueString;
     }
 
     function GetTrueAnswer(sFor)
@@ -466,13 +482,13 @@ $(document).ready(function () {
             if (new RegExp(regex, "g").test(tempStrings[i]))
             {
                 const str = tempStrings[i].toString();
-                trueAnswer = $.trim(str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer)));
+                trueAnswer = ReplaceString($.trim(str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer))));
                 trueId = i;
                 if (debug)
                 {
                     //console.log(tempStrings[i - 1]);
                     console.log(str);
-                    console.log(tempQuestion);
+                    //console.log(tempQuestion);
                     //console.log(tempStrings[i + 1]);
                     console.log("True answer : " + trueAnswer + " id trueAnsw = " + trueId);
                 }
