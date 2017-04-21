@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.1.5
+// @version     0.1.6
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -445,14 +445,14 @@ $(document).ready(function () {
         }
     }
 
-    //Replace wrong <br>'s or other html tags
+    //Replace wrong <br>'s or other html tags, should work perfectly but it isn't >:( Fixed(probably)
     function ReplaceString(str)
     {
         var trueString = str;
 
-        while (trueString.search("<br />") != -1)
+        while (trueString.search("<br />") !== -1)
         {
-            trueString = str.replace("<br />", "<br>");
+            trueString = str.replace(/<br \/>/g, "<br>");
         }
 
         return trueString;
