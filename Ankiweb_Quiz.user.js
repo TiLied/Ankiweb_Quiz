@@ -13,8 +13,6 @@
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @resource    ankiDeck Japanese.txt
-// @resource    ankiDeck1 JLPTN5.txt
-// @resource    ankiDeck2 TheKodanshaKanjiLearnersCourse.txt
 // ==/UserScript==
 
 //not empty val
