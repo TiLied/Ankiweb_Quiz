@@ -6,13 +6,15 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.1.8
+// @version     0.1.9
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @resource    ankiDeck Japanese.txt
+// @resource    ankiDeck1 JLPTN5.txt
+// @resource    ankiDeck2 TheKodanshaKanjiLearnersCourse.txt
 // ==/UserScript==
 
 //not empty val
@@ -71,7 +73,6 @@ function SetSettings()
         Debug: <input type=checkbox name=debug id=awq_debug></input>\
         </form>\
         <button class=awq_style>Hide</button>\
-        <button class=awq_style>Yep</button>\
         </div>\
         ");
 
@@ -364,19 +365,26 @@ $(document).ready(function () {
             }
 
             rubyVal = "";
-            //for (var i = 0; i < contentText.length; i++)
-            //{
-            //    rubyVal += $.trim(contentText[i].nodeValue);
-            //    rubyVal += "<ruby><rb>";
-            //    rubyVal += $.trim($(contentSpan[i]).contents().filter(function ()
-            //    {
-            //        return this.nodeType == 3;
-            //    })[0].nodeValue) + "</rb><rt>";
-            //    rubyVal += $(contentSpan[i]).contents()[0].innerHTML + "</rt></ruby>";
-            //}
-            //return rubyVal;
+            var x = 0;
+            for (var i = 0; i < contentText.length; i++)
+            {
+                rubyVal += $.trim(contentText[i].nodeValue);
+                if (x < contentSpan.length)
+                {
+                    rubyVal += "<ruby><rb>";
+                    rubyVal += $.trim($(contentSpan[x]).contents().filter(function ()
+                    {
+                        return this.nodeType == 3;
+                    })[0].nodeValue) + "</rb><rt>";
+                    rubyVal += $(contentSpan[x]).contents()[0].innerHTML + "</rt></ruby>";
+                    x++
+                }
+            }
+            return rubyVal;
+
+
             //This is if first goes hiragana/katakana
-            if (contentText[0].nodeValue != "")
+            /*if (contentText[0].nodeValue != "")
             {
                 rubyVal = $.trim(contentText[0].nodeValue);
                 rubyVal += "<ruby><rb>";
@@ -460,7 +468,7 @@ $(document).ready(function () {
                 //    return this.nodeType == 3;
                 //})[0].nodeValue;
                 console.log("Here actua this: " + rubyVal);
-            }
+            }*/
         } else
         {
             return $.trim($("awq_question").text());
@@ -684,5 +692,5 @@ $(document).ready(function () {
         3.3)Make it always show quiz
 ✓    4)Make it full functionality of Japanese deck, partial done in 0.0.8    //DONE 0.0.9 Happy with that :)
     5)Search question in between tags <awq_question> and </awq_question> not in whole sentence, almost done in 0.1.2
-    6)TODO for loop in finding question NEED TEST IT    //DONE 0.1.7 BROKEN
+✓    6)TODO for loop in finding question NEED TEST IT    //DONE 0.1.7 BROKEN     //DONE 0.1.9
 TODO ENDS */
