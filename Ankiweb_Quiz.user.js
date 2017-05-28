@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.1.9
+// @version     0.2.0
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -16,8 +16,10 @@
 // ==/UserScript==
 
 //not empty val
-var originAnkiDeck = GM_getResourceText("ankiDeck"),
-    inBstring = "<awq>",
+var originAnkiDeck = GM_getResourceText("ankiDeck");
+
+//const
+const	inBstring = "<awq>",
     inEstring = "</awq>",
     inBegAnswer = "<awq_answer>",
     inEndAnswer = "</awq_answer>";
@@ -58,13 +60,13 @@ function Main()
     }
     console.log(tempStrings);
     CssAdd();
-    //SetSettings();
+    SetSettings();
 }
 
 //Settings
 function SetSettings()
 {
-    const settings = $("<li class=nav-item></li>").html("<a id=awq_settings class=nav-link>Settings Ankiweb Quiz</a> \
+	const settings = $("<li class=nav-item></li>").html("<a id=awq_settings class=nav-link>Settings Ankiweb Quiz " + GM_info.script.version + "</a> \
         <div id=awq_settingsPanel class=awq_settingsP>\
         <form> \
         <br> \
@@ -73,7 +75,6 @@ function SetSettings()
         <button class=awq_style>Hide</button>\
         </div>\
         ");
-
 
     $(".navbar-nav:first").append(settings);
     $("#awq_settings").addClass("awq_settings");
@@ -89,6 +90,12 @@ function LoadSettings()
     {
         debug = GM_getValue("awq_debug");
         $("#awq_debug").prop("checked", debug);
+    }
+
+	//THIS IS ABOUT BUTTONS
+    if (HasValue("awq_amountButtons", 8))
+    {
+    	amountButtons = GM_getValue("awq_amountButtons");
     }
 
     //Console log prefs with value
@@ -145,12 +152,54 @@ function HasValue(nameVal, optValue)
     }
 }
 
+//Delete Values
+function DeleteValues(nameVal)
+{
+	var vals = [];
+	for (var i = 0; i < GM_listValues().length; i++)
+	{
+		vals[i] = GM_listValues()[i];
+	}
+
+	if (vals.length === 0 || typeof nameVal != "string")
+	{
+		return;
+	}
+
+	switch (nameVal)
+	{
+		case "all":
+			for (var i = 0; i < vals.length; i++)
+			{
+				GM_deleteValue(vals[i]);
+			}
+			break;
+		case "old":
+			for (var i = 0; i < vals.length; i++)
+			{
+				if (vals[i] === "debug" || vals[i] === "debugA")
+				{
+					GM_deleteValue(vals[i]);
+				}
+			}
+			break;
+		default:
+			for (var i = 0; i < vals.length; i++)
+			{
+				if (vals[i] === nameVal)
+				{
+					GM_deleteValue(nameVal);
+				}
+			}
+			break;
+	}
+}
 
 function SetEventSettings()
 {
     $("#awq_settings").click(function ()
     {
-        $("#awq_settingsPanel").toggle();
+        $("#awq_settingsPanel").toggle(1000);
     });
 
     $("#awq_debug").change(function ()
@@ -182,6 +231,8 @@ function FindIndexes(searchStr, str, caseSensitive)
 //css styles adds
 function CssAdd()
 {
+	$("head").append($("<!--Start of AnkiWeb Quiz v" + GM_info.script.version + " CSS-->"));
+
     $("head").append($("<style type=text/css></style>").text("button.awq_btn { \
          \
         }"));
@@ -221,6 +272,8 @@ function CssAdd()
     $("head").append($("<style type=text/css></style>").text("button.awq_false:hover { \
         background-color: #a5025a; border-color: #a5025a;\
         }"));
+
+    $("head").append($("<!--End of AnkiWeb Quiz v" + GM_info.script.version + " CSS-->"));
 }
 
 $(document).ready(function () {
@@ -364,109 +417,40 @@ $(document).ready(function () {
 
             rubyVal = "";
             var x = 0;
-            for (var i = 0; i < contentText.length; i++)
+            if (contentText > contentSpan)
             {
-                rubyVal += $.trim(contentText[i].nodeValue);
-                if (x < contentSpan.length)
-                {
-                    rubyVal += "<ruby><rb>";
-                    rubyVal += $.trim($(contentSpan[x]).contents().filter(function ()
-                    {
-                        return this.nodeType == 3;
-                    })[0].nodeValue) + "</rb><rt>";
-                    rubyVal += $(contentSpan[x]).contents()[0].innerHTML + "</rt></ruby>";
-                    x++
-                }
+            	for (var i = 0; i < contentText.length; i++)
+            	{
+            		rubyVal += $.trim(contentText[i].nodeValue);
+            		if (x < contentSpan.length)
+            		{
+            			rubyVal += "<ruby><rb>";
+            			rubyVal += $.trim($(contentSpan[x]).contents().filter(function ()
+            			{
+            				return this.nodeType == 3;
+            			})[0].nodeValue) + "</rb><rt>";
+            			rubyVal += $(contentSpan[x]).contents()[0].innerHTML + "</rt></ruby>";
+            			x++;
+            		}
+            	}
+            } else
+            {
+            	for (var i = 0; i < contentSpan.length; i++)
+            	{
+            		if (x < contentText.length)
+            		{
+            			rubyVal += $.trim(contentText[x].nodeValue);
+            			x++;
+					}
+            		rubyVal += "<ruby><rb>";
+            		rubyVal += $.trim($(contentSpan[i]).contents().filter(function ()
+            		{
+            			return this.nodeType == 3;
+            		})[0].nodeValue) + "</rb><rt>";
+            		rubyVal += $(contentSpan[i]).contents()[0].innerHTML + "</rt></ruby>";
+            	}
             }
             return rubyVal;
-
-
-            //This is if first goes hiragana/katakana
-            /*if (contentText[0].nodeValue != "")
-            {
-                rubyVal = $.trim(contentText[0].nodeValue);
-                rubyVal += "<ruby><rb>";
-
-                rubyVal += $.trim($(contentSpan[0]).contents().filter(function ()
-                {
-                    return this.nodeType == 3;
-                })[0].nodeValue) + "</rb><rt>";
-
-                rubyVal += $(contentSpan[0]).contents()[0].innerHTML + "</rt></ruby>";
-
-                //After kanji goes  hiragana/katakana if not return
-                if (contentText[1] != null)
-                {
-                    rubyVal += $.trim(contentText[1].nodeValue);
-                    if (contentSpan[1] != null)
-                    {
-                        rubyVal += "<ruby><rb>";
-                        rubyVal += $.trim($(contentSpan[1]).contents().filter(function ()
-                        {
-                            return this.nodeType == 3;
-                        })[0].nodeValue) + "</rb><rt>";
-
-                        rubyVal += $(contentSpan[1]).contents()[0].innerHTML + "</rt></ruby>";
-
-                        //After kanji goes  hiragana/katakana if not return
-                        if (contentText[2] != null)
-                        {
-                            rubyVal += $.trim(contentText[2].nodeValue);
-                            if (contentSpan[2] != null)
-                            {
-                                //TODO THIRD
-                            } else
-                            {
-                                if (debug)
-                                {
-                                    console.log("Here actua this: " + rubyVal);
-                                }
-                                return rubyVal;
-                            }
-                        } else
-                        {
-                            if (debug)
-                            {
-                                console.log("Here actua this: " + rubyVal);
-                            }
-                            return rubyVal;
-                        }
-                    } else
-                    {
-                        if (debug)
-                        {
-                            console.log("Here actua this: " + rubyVal);
-                        }
-                        return rubyVal;
-                    }
-                } else
-                {
-                    if (debug)
-                    {
-                        console.log("Here actua this: " + rubyVal);
-                    }
-                    return rubyVal;
-                }
-
-                if (debug)
-                {
-                    console.log("value first:" + contentText[0].nodeValue);
-                    console.log(contentSpan);
-                    console.log(contentSpan[0].innerHTML);
-                }
-            }
-
-            if (debug)
-            {
-                console.log(contentText);
-                console.log("IT DOES");
-                console.log($("awq_question").contents());
-                //rubyVal = $("awq_question").contents().filter(function ()
-                //{
-                //    return this.nodeType == 3;
-                //})[0].nodeValue;
-                console.log("Here actua this: " + rubyVal);
-            }*/
         } else
         {
             return $.trim($("awq_question").text());
@@ -683,7 +667,7 @@ $(document).ready(function () {
 ✓    1)Make it only one element of buttons  //DONE 0.0.9
         1.1)Increase numbers of buttons to 10-12(optional through settings???)
 ✓    2)Make it limit of length answer and put whole in attribute title  //DONE 0.1.0
-    3)Make it settings, almost done in 0.1.0
+✓    3)Make it settings, almost done in 0.1.0	//DONE 0.2.0
 ✓        3.1)Debug   //DONE 0.1.0 
         3.2)Add txt file ***RESEARCH NEEDED***
             3.2.1)Choose them
