@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.2.1
+// @version     0.2.2
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -72,7 +72,7 @@ function SetSettings()
 		<br> \
 		Debug: <input type=checkbox name=debug id=awq_debug></input>\
 		</form>\
-		<button class=awq_style>Hide</button>\
+		<button id=hideButton class=awq_style>Hide</button>\
 		</div>\
 		");
 
@@ -198,6 +198,11 @@ function DeleteValues(nameVal)
 function SetEventSettings()
 {
 	$("#awq_settings").click(function ()
+	{
+		$("#awq_settingsPanel").toggle(1000);
+	});
+
+	$("#hideButton").click(function ()
 	{
 		$("#awq_settingsPanel").toggle(1000);
 	});
