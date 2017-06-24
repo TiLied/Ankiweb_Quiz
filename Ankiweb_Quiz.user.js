@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.2.2
+// @version     0.2.3
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -16,13 +16,24 @@
 // ==/UserScript==
 
 //not empty val
-var originAnkiDeck = GM_getResourceText("ankiDeck");
+var originAnkiDeck = GM_getResourceText("ankiDeck"),
+	std = window.eval("require('study').default;"),
+	defaultDeck = new Deck("question default", "answer default", 10001, 20002),
+	defaultDecks =
+	{
+		defaultId:
+			{
+				cards: defaultDeck,
+				updateDeck: false
+			}
+	};
 
 //const
-const	inBstring = "<awq>",
+const inBstring = "<awq>",
 	inEstring = "</awq>",
 	inBegAnswer = "<awq_answer>",
-	inEndAnswer = "</awq_answer>";
+	inEndAnswer = "</awq_answer>",
+	textDefault = "You need to use this deck more to get more variations";
 
 //arrays
 var stringArray = [],
@@ -36,13 +47,15 @@ var stringArray = [],
 //empty val
 var searchFor,
 	trueAnswer,
-	trueId, 
+	trueId,
 	id,
-	rubyVal;
+	rubyVal,
+	deck;
 
 //prefs
 var amountButtons,
-	debug;
+	debug,
+	decks;
 
 Main();
 
@@ -90,6 +103,12 @@ function LoadSettings()
 	{
 		debug = GM_getValue("awq_debug");
 		$("#awq_debug").prop("checked", debug);
+	}
+
+	//THIS IS ABOUT DECKS
+	if (HasValue("awq_decks", JSON.stringify(defaultDecks)))
+	{
+		decks = JSON.parse(GM_getValue("awq_decks"));
 	}
 
 	//THIS IS ABOUT BUTTONS
@@ -193,6 +212,15 @@ function DeleteValues(nameVal)
 			}
 			break;
 	}
+}
+
+//Construction of Deck
+function Deck(question, answer, idTimeOne, idTimeTwo)
+{
+	this.question = [question];
+	this.answer = [answer];
+	this.idTimeOne = [idTimeOne];
+	this.IdTimeTwo = [idTimeTwo];
 }
 
 function SetEventSettings()
@@ -669,6 +697,7 @@ $(document).ready(function () {
 // ------------
 
 /* TODO STARTS
+	0)REWRITE EVERYTHING WITHOUT USING GETRESOURCE AND CHANGING CODE
 ✓    1)Make it only one element of buttons  //DONE 0.0.9
 		1.1)Increase numbers of buttons to 10-12(optional through settings???)
 ✓    2)Make it limit of length answer and put whole in attribute title  //DONE 0.1.0
