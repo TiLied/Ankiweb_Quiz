@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.2.3
+// @version     0.2.4
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -55,17 +55,19 @@ var searchFor,
 //prefs
 var amountButtons,
 	debug,
-	decks;
+	decks,
+	lastIdChosen;
 
 Main();
 
 function Main()
 {
+	UrlHandler(document.URL);
 	inB = FindIndexes(inBstring, originAnkiDeck);
 	inE = FindIndexes(inEstring, originAnkiDeck);
 	console.log(inB);
 	console.log(inE);
-
+	
 	for (var i = 0; i < inB.length; i++)
 	{
 		tempStrings[i] = originAnkiDeck.slice(inB[i] + 5, inE[i]);
@@ -74,6 +76,7 @@ function Main()
 	console.log(tempStrings);
 	CssAdd();
 	SetSettings();
+	SetEventsOnDecks(document.URL);
 }
 
 //Settings
@@ -109,6 +112,13 @@ function LoadSettings()
 	if (HasValue("awq_decks", JSON.stringify(defaultDecks)))
 	{
 		decks = JSON.parse(GM_getValue("awq_decks"));
+	}
+
+	//THIS IS ABOUT lastIdChosen
+	if (HasValue("awq_lastIdChosen", 000))
+	{
+		lastIdChosen = GM_getValue("awq_lastIdChosen");
+		GetDeck(lastIdChosen);
 	}
 
 	//THIS IS ABOUT BUTTONS
@@ -243,6 +253,21 @@ function SetEventSettings()
 	});
 }
 
+function SetEventsOnDecks(url)
+{
+	if (url.match(/http:\/\/ankiweb\.net\/decks/i) || url.match(/https:\/\/ankiweb\.net\/decks/i))
+	{
+		$("div.light-bottom-border > div:first-child > button").on("mousedown", function ()
+		{
+			lastIdChosen = this.id;
+			GM_setValue("awq_lastIdChosen", lastIdChosen);
+		});
+	} else
+	{
+		return;
+	}
+}
+
 function FindIndexes(searchStr, str, caseSensitive)
 {
 	var searchStrLen = searchStr.length;
@@ -309,6 +334,50 @@ function CssAdd()
 	$("head").append($("<!--End of AnkiWeb Quiz v" + GM_info.script.version + " CSS-->"));
 }
 
+//hHander for url
+function UrlHandler(url)
+{
+	if (url.match(/http:\/\/ankiweb\.net\/study/i) || url.match(/https:\/\/ankiweb\.net\/study/i))
+	{
+		this.oldHash = window.location.pathname;
+		this.Check;
+
+		var that = this;
+		var detect = function ()
+		{
+			if (that.oldHash != window.location.pathname)
+			{
+				that.oldHash = window.location.pathname;
+				UpdateGMValue();
+			}
+		};
+		this.Check = setInterval(function () { detect() }, 200);
+	} else
+	{
+		return;
+	}
+}
+
+function GetDeck(idDeck)
+{
+	var keyNames = Object.keys(decks);
+	for (var i in keyNames)
+	{
+		if (idDeck == keyNames)
+		{
+			deck = decks[idDeck].cards;
+		} else
+		{
+			decks[idDeck] =
+			{
+				cards: defaultDeck,
+				updateDeck: false
+			}
+			deck = decks[idDeck].cards;
+		}
+	}
+}
+
 $(document).ready(function () {
 
 	// Append some text to the element with id someText using the jQuery library.
@@ -317,6 +386,9 @@ $(document).ready(function () {
 	$("#studynow").click(function () {
 		setTimeout(function ()
 		{
+			//var asd = std.currentCard;
+			//console.log(asd[1]);
+			//console.log($.trim(StripTags(asd[1].replace(/<style>[\s\S]*?<\/style>/ig, ''))));
 			SetUI();
 			searchFor = SearchQuestion();
 			if (debug)
@@ -691,6 +763,10 @@ $(document).ready(function () {
 	console.log("AnkiWeb Quiz v" + GM_info.script.version + " Initialized"); 
 });
 
+function StripTags(string)
+{
+	return string.replace(/<\w+(\s+("[^"]*"|'[^']*'|[^>])+)?(\/)?>|<\/\w+>/gi, '');
+}
 
 // ------------
 //  TODO
