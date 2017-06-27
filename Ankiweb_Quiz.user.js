@@ -19,14 +19,10 @@
 var originAnkiDeck = GM_getResourceText("ankiDeck"),
 	std = window.eval("require('study').default;"),
 	defaultDeck = new Deck("question default", "answer default", 10001, 20002),
-	defaultDecks =
+	defaultDecks = 
 	{
-		defaultId:
-			{
-				cards: defaultDeck,
-				updateDeck: false
-			}
-	};
+		defaultId :	new Decks(defaultDeck)
+	}
 
 //const
 const inBstring = "<awq>",
@@ -101,6 +97,9 @@ function SetSettings()
 
 function LoadSettings()
 {
+
+	//DeleteValues("awq_decks");
+
 	//THIS IS ABOUT DEBUG
 	if (HasValue("awq_debug", false))
 	{
@@ -230,8 +229,17 @@ function Deck(question, answer, idTimeOne, idTimeTwo)
 	this.question = [question];
 	this.answer = [answer];
 	this.idTimeOne = [idTimeOne];
-	this.IdTimeTwo = [idTimeTwo];
+	this.idTimeTwo = [idTimeTwo];
 }
+
+//Construction of Decks
+function Decks(cards)
+{
+	this.cards = cards;
+	this.updateDeck = false;
+	this.firstTime = true;
+	this.customSettings = {};
+};
 
 function SetEventSettings()
 {
@@ -368,11 +376,7 @@ function GetDeck(idDeck)
 			deck = decks[idDeck].cards;
 		} else
 		{
-			decks[idDeck] =
-			{
-				cards: defaultDeck,
-				updateDeck: false
-			}
+			decks[idDeck] = new Decks(defaultDeck);
 			deck = decks[idDeck].cards;
 		}
 	}
@@ -386,13 +390,22 @@ $(document).ready(function () {
 	$("#studynow").click(function () {
 		setTimeout(function ()
 		{
-			//var asd = std.currentCard;
-			//console.log(asd[1]);
-			//console.log($.trim(StripTags(asd[1].replace(/<style>[\s\S]*?<\/style>/ig, ''))));
+			var asd = std.currentCard;
 			SetUI();
+			if (decks[lastIdChosen].firstTime == true)
+			{
+				//FirstTimeDeck(std.currentCard, std["deck"].cards);
+			}
 			searchFor = SearchQuestion();
 			if (debug)
 			{
+				console.log(std);
+				console.log("---");
+				//console.log($.trim(StripNewLines(StripTags(asd[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))));
+				//console.log($.trim(StripNewLines(StripTags(asd[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))));
+				console.log("---");
+				//console.log("FirstTime:" + decks[lastIdChosen].firstTime);
+				console.log(decks);
 				console.log("searchFor:" + searchFor);
 			}
 			GetTrueAnswer(searchFor);
@@ -402,10 +415,60 @@ $(document).ready(function () {
 		}, 1500);
 	});
 
+	function NumberOfButtons()
+	{
+		var buttons = "";
+		for (var i = 0; i < amountButtons; i++)
+		{
+			buttons += "<button class=awq_btn></button>";
+		}
+		return buttons;
+	}
+
+	//THIS FUNC FOR FIRST TIME USING DECK AFteR INSTALL SCRIPT
+	function FirstTimeDeck(currentDeck, nextCards)
+	{
+		var questions = [$.trim(StripNewLines(StripTags(currentDeck[1].replace(/<style>[\s\S]*?<\/style>/ig, ''))))],
+			answers = [$.trim(StripNewLines(StripTags(currentDeck[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, ''))))],
+			idTimeOnes = [currentDeck[0]],
+			idTimeTwos = [currentDeck[4]];
+
+		for (var i = 0; i < nextCards.length; i++)
+		{
+			questions.push($.trim(StripNewLines(StripTags(nextCards[i][1].replace(/<style>[\s\S]*?<\/style>/ig, '')))));
+			answers.push($.trim(StripNewLines(StripTags(nextCards[i][2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))));
+			idTimeOnes.push(nextCards[i][0]);
+			idTimeTwos.push(nextCards[i][4]);
+		}
+
+		for (var i = 0; i < questions.length; i++)
+		{
+			UpdateDeck(questions[i], answers[i], idTimeOnes[i], idTimeTwos[i]);
+		}
+	}
+
+	//THIS FUNC FOR UPDATING DECK OBJECT
+	function UpdateDeck(question, answer, idTimeOne, idTimeTwo)
+	{
+		//TODO CHECK FOR REPEAT
+		//TODO FORCE UPDATE
+		deck["question"].push(question);
+		deck["answer"].push(answer);
+		deck["idTimeOne"].push(idTimeOne);
+		deck["idTimeTwo"].push(idTimeTwo);
+	}
+
+	//THIS FUNC FOR UPDATING Greasemonkey value JSON OBJECT
+	function UpdateGMDecks(deck)
+	{
+		//TODO
+	}
+
+
 	function SetUI()
 	{
 		const buttonP = $("<button id=awq_quiz class=btn style=margin-left:4px></button>").text("Quiz");
-		const button = $("<div class=awq_rstyle></div>").html("<button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button>");
+		const button = $("<div class=awq_rstyle></div>").html(NumberOfButtons());
 
 		$(".pt-1").before("<br>");
 		$(".pt-1").before(button);
@@ -768,6 +831,10 @@ function StripTags(string)
 	return string.replace(/<\w+(\s+("[^"]*"|'[^']*'|[^>])+)?(\/)?>|<\/\w+>/gi, '');
 }
 
+function StripNewLines(string)
+{
+	return string.replace(/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/gi, '\n');
+}
 // ------------
 //  TODO
 // ------------
