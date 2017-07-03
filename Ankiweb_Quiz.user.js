@@ -450,8 +450,16 @@ $(document).ready(function () {
 	//THIS FUNC FOR UPDATING DECK OBJECT
 	function UpdateDeck(question, answer, idTimeOne, idTimeTwo)
 	{
-		//TODO CHECK FOR REPEAT
 		//TODO FORCE UPDATE
+		//CHECK FOR REPEAT
+		for (var i = 0; i < deck["idTimeOne"].length; i++)
+		{
+			if (idTimeOne === deck["idTimeOne"][i] && idTimeTwo === deck["idTimeTwo"][i])
+			{
+				return;
+			}
+		}
+
 		deck["question"].push(question);
 		deck["answer"].push(answer);
 		deck["idTimeOne"].push(idTimeOne);
