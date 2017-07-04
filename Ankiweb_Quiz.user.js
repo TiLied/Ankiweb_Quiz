@@ -356,7 +356,7 @@ function UrlHandler(url)
 			if (that.oldHash != window.location.pathname)
 			{
 				that.oldHash = window.location.pathname;
-				UpdateGMValue();
+				//UpdateGMValue();
 			}
 		};
 		this.Check = setInterval(function () { detect() }, 200);
@@ -390,11 +390,10 @@ $(document).ready(function () {
 	$("#studynow").click(function () {
 		setTimeout(function ()
 		{
-			var asd = std.currentCard;
 			SetUI();
 			if (decks[lastIdChosen].firstTime == true)
 			{
-				//FirstTimeDeck(std.currentCard, std["deck"].cards);
+				FirstTimeDeck(std.currentCard, std["deck"].cards);
 			}
 			searchFor = SearchQuestion();
 			if (debug)
@@ -409,6 +408,7 @@ $(document).ready(function () {
 				console.log("searchFor:" + searchFor);
 			}
 			GetTrueAnswer(searchFor);
+			SetUp(deck, std.currentCard);
 			if (debug) {
 				console.log('Study Click');
 			}
@@ -426,12 +426,12 @@ $(document).ready(function () {
 	}
 
 	//THIS FUNC FOR FIRST TIME USING DECK AFteR INSTALL SCRIPT
-	function FirstTimeDeck(currentDeck, nextCards)
+	function FirstTimeDeck(currentCard, nextCards)
 	{
-		var questions = [$.trim(StripNewLines(StripTags(currentDeck[1].replace(/<style>[\s\S]*?<\/style>/ig, ''))))],
-			answers = [$.trim(StripNewLines(StripTags(currentDeck[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, ''))))],
-			idTimeOnes = [currentDeck[0]],
-			idTimeTwos = [currentDeck[4]];
+		var questions = [$.trim(StripNewLines(StripTags(currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, ''))))],
+			answers = [$.trim(StripNewLines(StripTags(currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, ''))))],
+			idTimeOnes = [currentCard[0]],
+			idTimeTwos = [currentCard[4]];
 
 		for (var i = 0; i < nextCards.length; i++)
 		{
@@ -471,6 +471,7 @@ $(document).ready(function () {
 	{
 		//TODO
 	}
+
 
 
 	function SetUI()
@@ -644,6 +645,11 @@ $(document).ready(function () {
 		}
 
 		return trueString;
+	}
+
+	function GetTrueAnswerU(currentDeck)
+	{
+
 	}
 
 	function GetTrueAnswer(sFor)
