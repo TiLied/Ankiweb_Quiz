@@ -408,7 +408,7 @@ $(document).ready(function () {
 				console.log("searchFor:" + searchFor);
 			}
 			GetTrueAnswer(searchFor);
-			SetUp(deck, std.currentCard);
+			//GetTrueAnswerU(std.currentCard[0], std.currentCard[4]);
 			if (debug) {
 				console.log('Study Click');
 			}
@@ -647,9 +647,18 @@ $(document).ready(function () {
 		return trueString;
 	}
 
-	function GetTrueAnswerU(currentDeck)
+	function GetTrueAnswerU(idOne, idTwo)
 	{
-
+		for (var i = 1; i < deck["idTimeOne"].length; i++)
+		{
+			if (idOne === deck["idTimeOne"][i] && idTwo === deck["idTimeTwo"][i])
+			{
+				trueAnswer = deck["answer"][i];
+				trueId = i;
+				GetFalseAnswersU(trueId);
+				return;
+			}
+		}
 	}
 
 	function GetTrueAnswer(sFor)
@@ -690,6 +699,74 @@ $(document).ready(function () {
 				break;
 			}
 		}
+	}
+
+	function GetFalseAnswersU(Id)
+	{
+		tempArr.length = 0;
+		if (deck["answer"].length <= amountButtons)
+		{
+			var temp = [];
+			temp = temp.concat(deck["answer"]);
+			if (debug)
+			{
+				console.log(temp);
+			}
+			temp.splice(0, 1);
+			for (var i = 0; i < (amountButtons - (deck["answer"].length - 1)); i++)
+			{
+				temp.push(textDefault);
+			}
+			if (debug)
+			{
+				console.log(temp);
+			}
+		}
+		for (var i = 0; i < (amountButtons - 1); i++)
+		{
+			if (deck["answer"].length > amountButtons)
+			{
+				id = GetRand(deck["answer"]);
+				if (id != trueId)
+				{
+					if (debug)
+					{
+						console.log(deck["answer"][id]);
+					}
+					falseAnswers[i] = deck["answer"][id];
+					if (debug)
+					{
+						console.log("***False answer " + i + " : " + falseAnswers[i] + " id: " + id);
+						//console.log("inBegAnswer: " + str.indexOf(inBegAnswer) + " : " + str.indexOf(inEndAnswer) + " inEndAnswer");
+					}
+				} else if(id === 0 || id === trueId)
+				{
+					id = GetRand(deck["answer"]);
+					i--;
+				}
+			} else
+			{
+				id = GetRand(temp);
+				if (id != trueId)
+				{
+					if (debug)
+					{
+						console.log(temp[id]);
+					}
+					falseAnswers[i] = temp[id];
+					if (debug)
+					{
+						console.log("***False answer " + i + " : " + falseAnswers[i] + " id: " + id);
+						//console.log("inBegAnswer: " + str.indexOf(inBegAnswer) + " : " + str.indexOf(inEndAnswer) + " inEndAnswer");
+					}
+				} else
+				{
+					id = GetRand(temp);
+					i--;
+				}
+			}
+		}
+		RamdomButton();
 	}
 
 	function GetFalseAnswers(trueId) {
@@ -753,9 +830,10 @@ $(document).ready(function () {
 		}
 	}
 
+	//
 	//random functions
 	function InArray(array, el) {
-		for (var i = 0 ; i < array.length; i++)
+		for (var i = 1; i < array.length; i++)
 			if (array[i] == el) return true;
 		return false;
 	}
@@ -769,12 +847,13 @@ $(document).ready(function () {
 		return GetRand(array);
 	}
 	//end of random functions
+	//
 
 	function RamdomButton()
 	{
+		var allAnswers = [];
 		buttons.length = 0;
 		tempArr.length = 0;
-		var allAnswers = [];
 		allAnswers[0] = trueAnswer;
 		for (var i = 1; i <= falseAnswers.length; i++) {
 			allAnswers[i] = falseAnswers[i - 1];
