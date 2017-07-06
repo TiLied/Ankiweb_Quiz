@@ -335,6 +335,10 @@ function CssAdd()
 		background-color: #d80275; border-color: #d80275;\
 		}"));
 
+	$("head").append($("<style type=text/css></style>").text("button.awq_first { \
+		background-color: #000; border-color: #000;\
+		}"));
+
 	$("head").append($("<style type=text/css></style>").text("button.awq_false:hover { \
 		background-color: #a5025a; border-color: #a5025a;\
 		}"));
@@ -395,7 +399,7 @@ $(document).ready(function () {
 			{
 				FirstTimeDeck(std.currentCard, std["deck"].cards);
 			}
-			searchFor = SearchQuestion();
+			//searchFor = SearchQuestion();
 			if (debug)
 			{
 				console.log(std);
@@ -407,8 +411,8 @@ $(document).ready(function () {
 				console.log(decks);
 				console.log("searchFor:" + searchFor);
 			}
-			GetTrueAnswer(searchFor);
-			//GetTrueAnswerU(std.currentCard[0], std.currentCard[4]);
+			//GetTrueAnswer(searchFor);
+			GetTrueAnswerU(std.currentCard[0], std.currentCard[4]);
 			if (debug) {
 				console.log('Study Click');
 			}
@@ -460,10 +464,20 @@ $(document).ready(function () {
 			}
 		}
 
-		deck["question"].push(question);
-		deck["answer"].push(answer);
-		deck["idTimeOne"].push(idTimeOne);
-		deck["idTimeTwo"].push(idTimeTwo);
+		//First time deck detected(delete default card)
+		if (deck["idTimeOne"][0] === 10001 && deck["idTimeTwo"][0] === 20002)
+		{
+			deck["question"][0] = question;
+			deck["answer"][0] = answer;
+			deck["idTimeOne"][0] = idTimeOne;
+			deck["idTimeTwo"][0] = idTimeTwo;
+		} else
+		{
+			deck["question"].push(question);
+			deck["answer"].push(answer);
+			deck["idTimeOne"].push(idTimeOne);
+			deck["idTimeTwo"].push(idTimeTwo);
+		}
 	}
 
 	//THIS FUNC FOR UPDATING Greasemonkey value JSON OBJECT
@@ -649,7 +663,7 @@ $(document).ready(function () {
 
 	function GetTrueAnswerU(idOne, idTwo)
 	{
-		for (var i = 1; i < deck["idTimeOne"].length; i++)
+		for (var i = 0; i < deck["idTimeOne"].length; i++)
 		{
 			if (idOne === deck["idTimeOne"][i] && idTwo === deck["idTimeTwo"][i])
 			{
@@ -701,7 +715,7 @@ $(document).ready(function () {
 		}
 	}
 
-	function GetFalseAnswersU(Id)
+	function GetFalseAnswersU(trueId)
 	{
 		tempArr.length = 0;
 		if (deck["answer"].length <= amountButtons)
@@ -712,7 +726,6 @@ $(document).ready(function () {
 			{
 				console.log(temp);
 			}
-			temp.splice(0, 1);
 			for (var i = 0; i < (amountButtons - (deck["answer"].length - 1)); i++)
 			{
 				temp.push(textDefault);
@@ -833,7 +846,7 @@ $(document).ready(function () {
 	//
 	//random functions
 	function InArray(array, el) {
-		for (var i = 1; i < array.length; i++)
+		for (var i = 0; i < array.length; i++)
 			if (array[i] == el) return true;
 		return false;
 	}
@@ -897,15 +910,22 @@ $(document).ready(function () {
 			{
 				$(sel[i]).html(buttons[i].slice(0, 40) + "...");
 				$(sel[i]).attr("title", buttons[i]);
+
+				//change color of button with textDefault
+				if ($(sel[i]).attr("title") == textDefault)
+				{
+					$(sel[i]).addClass("awq_first");
+				}
 			}
-			
+
 			if (debug)
 			{
-				//console.log(sel[i]);
+				//console.log($(sel[i]).attr("title"));
 				console.log(buttons[i] + " Length: " + buttons[i].length);
 				console.log(buttons[i].includes("</ruby>"));
 			}
 		}
+
 
 		CheckPresedButtons();
 	}
@@ -914,6 +934,7 @@ $(document).ready(function () {
 	{ 
 		$(".awq_btn").removeClass("awq_true");
 		$(".awq_btn").removeClass("awq_false");
+		//$(".awq_btn").removeClass("awq_first");
 	}
 
 	console.log("AnkiWeb Quiz v" + GM_info.script.version + " Initialized"); 
