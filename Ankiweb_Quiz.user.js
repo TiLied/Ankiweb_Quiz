@@ -522,21 +522,29 @@ $(document).ready(function () {
 				}
 				$("#ease1").click(function ()
 				{
-					OtherEvent();
+					OtherEventU();
+					//OtherEvent();
+					//TODO CHECK STATUS OF DECK AND UPDATE GM_VALUE IF DECK FINISHED
 				});
 				$("#ease2").click(function ()
 				{
-					OtherEvent();
+					OtherEventU();
+					//OtherEvent();
+					//TODO CHECK STATUS OF DECK AND UPDATE GM_VALUE IF DECK FINISHED
 				});
 				$("#ease3").click(function ()
 				{
-					OtherEvent();
+					OtherEventU();
+					//OtherEvent();
+					//TODO CHECK STATUS OF DECK AND UPDATE GM_VALUE IF DECK FINISHED
 				});
 				$("#ease4").click(function ()
 				{
-					OtherEvent();
+					OtherEventU();
+					//OtherEvent();
+					//TODO CHECK STATUS OF DECK AND UPDATE GM_VALUE IF DECK FINISHED
 				});
-			}, 500);
+			}, 250);
 		});
 
 		$(".awq_btn").click(function ()
@@ -804,6 +812,53 @@ $(document).ready(function () {
 		RamdomButton();
 	}
 
+	function OtherEventU()
+	{
+		if (debug)
+		{
+			console.log("Button click");
+			console.log("---------------");
+			//console.log(std.currentCard);
+			//console.log($("awq").text().length);
+		}
+		$(".awq_rstyle").hide();
+		$(".awq_btn").removeClass("awq_first");
+		if (std.currentCard == undefined)
+		{
+			setTimeout(function ()
+			{
+				if (std.currentCard == undefined)
+				{
+					setTimeout(function ()
+					{
+						var question = $.trim(StripNewLines(StripTags(std.currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+							answer = $.trim(StripNewLines(StripTags(std.currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+							idTimeOne = std.currentCard[0],
+							idTimeTwo = std.currentCard[4];
+						UpdateDeck(question, answer, idTimeOne, idTimeTwo);
+						GetTrueAnswerU(idTimeOne, idTimeTwo);
+					}, 3000);
+				} else
+				{
+					var question = $.trim(StripNewLines(StripTags(std.currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+						answer = $.trim(StripNewLines(StripTags(std.currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+						idTimeOne = std.currentCard[0],
+						idTimeTwo = std.currentCard[4];
+					UpdateDeck(question, answer, idTimeOne, idTimeTwo);
+					GetTrueAnswerU(idTimeOne, idTimeTwo);
+				}
+			}, 1000);
+		} else
+		{
+			var question = $.trim(StripNewLines(StripTags(std.currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+				answer = $.trim(StripNewLines(StripTags(std.currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+				idTimeOne = std.currentCard[0],
+				idTimeTwo = std.currentCard[4];
+			UpdateDeck(question, answer, idTimeOne, idTimeTwo);
+			GetTrueAnswerU(idTimeOne, idTimeTwo);
+		}
+	}
+
 	function OtherEvent()
 	{
 		if (debug) {
@@ -949,6 +1004,7 @@ function StripNewLines(string)
 {
 	return string.replace(/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/gi, '\n');
 }
+
 // ------------
 //  TODO
 // ------------
