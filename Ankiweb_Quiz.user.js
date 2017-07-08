@@ -6,18 +6,16 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.2.4
+// @version     0.9.9
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @resource    ankiDeck Japanese.txt
 // ==/UserScript==
 
 //not empty val
-var originAnkiDeck = GM_getResourceText("ankiDeck"),
-	std = window.eval("require('study').default;"),
+var std = window.eval("require('study').default;"),
 	defaultDeck = new Deck("question default", "answer default", 10001, 20002),
 	defaultDecks = 
 	{
@@ -58,18 +56,17 @@ Main();
 
 function Main()
 {
-	UrlHandler(document.URL);
-	inB = FindIndexes(inBstring, originAnkiDeck);
-	inE = FindIndexes(inEstring, originAnkiDeck);
-	console.log(inB);
-	console.log(inE);
+	//inB = FindIndexes(inBstring, originAnkiDeck);
+	//inE = FindIndexes(inEstring, originAnkiDeck);
+	//console.log(inB);
+	//console.log(inE);
 	
-	for (var i = 0; i < inB.length; i++)
-	{
-		tempStrings[i] = originAnkiDeck.slice(inB[i] + 5, inE[i]);
-		//console.log(tempStrings[i]);
-	}
-	console.log(tempStrings);
+	//for (var i = 0; i < inB.length; i++)
+	//{
+	//	tempStrings[i] = originAnkiDeck.slice(inB[i] + 5, inE[i]);
+	//	//console.log(tempStrings[i]);
+	//}
+	//console.log(tempStrings);
 	CssAdd();
 	SetSettings();
 	SetEventsOnDecks(document.URL);
@@ -276,6 +273,20 @@ function SetEventsOnDecks(url)
 	}
 }
 
+function SetEventsOnStudy(url)
+{
+	if (url.match(/http:\/\/ankiweb\.net\/study/i) || url.match(/https:\/\/ankiweb\.net\/study/i))
+	{
+		$("#leftStudyMenu a:first-child").on("mousedown", function ()
+		{
+			UpdateGMDecks();
+		});
+	} else
+	{
+		return;
+	}
+}
+
 function FindIndexes(searchStr, str, caseSensitive)
 {
 	var searchStrLen = searchStr.length;
@@ -346,30 +357,6 @@ function CssAdd()
 	$("head").append($("<!--End of AnkiWeb Quiz v" + GM_info.script.version + " CSS-->"));
 }
 
-//hHander for url
-function UrlHandler(url)
-{
-	if (url.match(/http:\/\/ankiweb\.net\/study/i) || url.match(/https:\/\/ankiweb\.net\/study/i))
-	{
-		this.oldHash = window.location.pathname;
-		this.Check;
-
-		var that = this;
-		var detect = function ()
-		{
-			if (that.oldHash != window.location.pathname)
-			{
-				that.oldHash = window.location.pathname;
-				//UpdateGMValue();
-			}
-		};
-		this.Check = setInterval(function () { detect() }, 200);
-	} else
-	{
-		return;
-	}
-}
-
 function GetDeck(idDeck)
 {
 	var keyNames = Object.keys(decks);
@@ -395,9 +382,17 @@ $(document).ready(function () {
 		setTimeout(function ()
 		{
 			SetUI();
+			SetEventsOnStudy(document.URL);
 			if (decks[lastIdChosen].firstTime == true)
 			{
 				FirstTimeDeck(std.currentCard, std["deck"].cards);
+			} else
+			{
+				var question = $.trim(StripNewLines(StripTags(std.currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+					answer = $.trim(StripNewLines(StripTags(std.currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+					idTimeOne = std.currentCard[0],
+					idTimeTwo = std.currentCard[4];
+				UpdateDeck(question, answer, idTimeOne, idTimeTwo);
 			}
 			//searchFor = SearchQuestion();
 			if (debug)
@@ -409,7 +404,8 @@ $(document).ready(function () {
 				console.log("---");
 				//console.log("FirstTime:" + decks[lastIdChosen].firstTime);
 				console.log(decks);
-				console.log("searchFor:" + searchFor);
+				console.log($.trim($("#rightStudyMenu").text()).split("+"));
+				//console.log("searchFor:" + searchFor);
 			}
 			//GetTrueAnswer(searchFor);
 			GetTrueAnswerU(std.currentCard[0], std.currentCard[4]);
@@ -449,12 +445,24 @@ $(document).ready(function () {
 		{
 			UpdateDeck(questions[i], answers[i], idTimeOnes[i], idTimeTwos[i]);
 		}
+
+		decks[lastIdChosen].firstTime = false;
 	}
 
 	//THIS FUNC FOR UPDATING DECK OBJECT
 	function UpdateDeck(question, answer, idTimeOne, idTimeTwo)
 	{
 		//TODO FORCE UPDATE
+		if (question.length >= 350)
+		{
+			question = "CARD TOO LONG: " + question.slice(0, 350);
+		}
+
+		if (answer.length >= 350)
+		{
+			answer = "CARD TOO LONG: " + answer.slice(0, 350);
+		}
+
 		//CHECK FOR REPEAT
 		for (var i = 0; i < deck["idTimeOne"].length; i++)
 		{
@@ -481,12 +489,16 @@ $(document).ready(function () {
 	}
 
 	//THIS FUNC FOR UPDATING Greasemonkey value JSON OBJECT
-	function UpdateGMDecks(deck)
+	function UpdateGMDecks()
 	{
-		//TODO
+		if (deck["answer"].length <= amountButtons)
+		{
+			decks[lastIdChosen].firstTime = true;
+		}
+
+		var gmDecks = JSON.stringify(decks);
+		GM_setValue("awq_decks", gmDecks);
 	}
-
-
 
 	function SetUI()
 	{
@@ -514,6 +526,7 @@ $(document).ready(function () {
 
 		$("#ansbuta").click(function ()
 		{
+			CheckStatus($.trim($("#rightStudyMenu").text()).split("+"));
 			setTimeout(function ()
 			{
 				if (debug)
@@ -524,25 +537,21 @@ $(document).ready(function () {
 				{
 					OtherEventU();
 					//OtherEvent();
-					//TODO CHECK STATUS OF DECK AND UPDATE GM_VALUE IF DECK FINISHED
 				});
 				$("#ease2").click(function ()
 				{
 					OtherEventU();
 					//OtherEvent();
-					//TODO CHECK STATUS OF DECK AND UPDATE GM_VALUE IF DECK FINISHED
 				});
 				$("#ease3").click(function ()
 				{
 					OtherEventU();
 					//OtherEvent();
-					//TODO CHECK STATUS OF DECK AND UPDATE GM_VALUE IF DECK FINISHED
 				});
 				$("#ease4").click(function ()
 				{
 					OtherEventU();
 					//OtherEvent();
-					//TODO CHECK STATUS OF DECK AND UPDATE GM_VALUE IF DECK FINISHED
 				});
 			}, 250);
 		});
@@ -585,6 +594,26 @@ $(document).ready(function () {
 				}
 			}
 		});
+	}
+
+	function CheckStatus(statusArr)
+	{
+		var one = parseInt(statusArr[0]),
+			two = parseInt(statusArr[1]),
+			tree = parseInt(statusArr[2]);
+		if (debug)
+		{
+			console.log(one);
+			console.log(two);
+			console.log(tree);
+		}
+		if ((one + two + tree) === 0)
+		{
+			UpdateGMDecks();
+		} else
+		{
+			return;
+		}
 	}
 
 	function EscapeRegExp(string)
@@ -1010,7 +1039,7 @@ function StripNewLines(string)
 // ------------
 
 /* TODO STARTS
-	0)REWRITE EVERYTHING WITHOUT USING GETRESOURCE AND CHANGING CODE
+✓	  0)REWRITE EVERYTHING WITHOUT USING GETRESOURCE AND CHANGING CODE	//DONE 1.0.0
 ✓    1)Make it only one element of buttons  //DONE 0.0.9
 		1.1)Increase numbers of buttons to 10-12(optional through settings???)
 ✓    2)Make it limit of length answer and put whole in attribute title  //DONE 0.1.0
