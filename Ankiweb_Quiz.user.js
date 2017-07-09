@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.9.9
+// @version     1.0.0
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
@@ -108,6 +108,7 @@ function LoadSettings()
 	if (HasValue("awq_decks", JSON.stringify(defaultDecks)))
 	{
 		decks = JSON.parse(GM_getValue("awq_decks"));
+		//console.log(decks);
 	}
 
 	//THIS IS ABOUT lastIdChosen
@@ -277,9 +278,10 @@ function SetEventsOnStudy(url)
 {
 	if (url.match(/http:\/\/ankiweb\.net\/study/i) || url.match(/https:\/\/ankiweb\.net\/study/i))
 	{
-		$("#leftStudyMenu a:first-child").on("mousedown", function ()
+		$("#leftStudyMenu a:first-child").on("mouseover", function ()
 		{
 			UpdateGMDecks();
+			console.log("UpdateGM");
 		});
 	} else
 	{
@@ -362,14 +364,37 @@ function GetDeck(idDeck)
 	var keyNames = Object.keys(decks);
 	for (var i in keyNames)
 	{
-		if (idDeck == keyNames)
+		if (idDeck == keyNames[i])
 		{
 			deck = decks[idDeck].cards;
-		} else
-		{
-			decks[idDeck] = new Decks(defaultDeck);
-			deck = decks[idDeck].cards;
+			return;
 		}
+	}
+
+	if(deck == undefined)
+	{
+		decks[idDeck] = new Decks(defaultDeck);
+		deck = decks[idDeck].cards;
+		return;
+	}
+}
+
+//THIS FUNC FOR UPDATING Greasemonkey value JSON OBJECT
+function UpdateGMDecks()
+{
+	try
+	{
+		if (deck["answer"].length < amountButtons)
+		{
+			decks[lastIdChosen].firstTime = true;
+		}
+
+		var gmDecks = JSON.stringify(decks);
+		GM_setValue("awq_decks", gmDecks);
+	}
+	catch (e)
+	{
+		console.log(e);
 	}
 }
 
@@ -486,18 +511,6 @@ $(document).ready(function () {
 			deck["idTimeOne"].push(idTimeOne);
 			deck["idTimeTwo"].push(idTimeTwo);
 		}
-	}
-
-	//THIS FUNC FOR UPDATING Greasemonkey value JSON OBJECT
-	function UpdateGMDecks()
-	{
-		if (deck["answer"].length <= amountButtons)
-		{
-			decks[lastIdChosen].firstTime = true;
-		}
-
-		var gmDecks = JSON.stringify(decks);
-		GM_setValue("awq_decks", gmDecks);
 	}
 
 	function SetUI()
@@ -1040,6 +1053,8 @@ function StripNewLines(string)
 
 /* TODO STARTS
 ✓	  0)REWRITE EVERYTHING WITHOUT USING GETRESOURCE AND CHANGING CODE	//DONE 1.0.0
+		0.1)Make custom settings
+		0.2)Make force update deck (Because once you updated card, in gm_value will be old version of card)
 ✓    1)Make it only one element of buttons  //DONE 0.0.9
 		1.1)Increase numbers of buttons to 10-12(optional through settings???)
 ✓    2)Make it limit of length answer and put whole in attribute title  //DONE 0.1.0
