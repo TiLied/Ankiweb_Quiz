@@ -6,27 +6,21 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     0.2.4
+// @version     1.0.0
 // @grant       GM_getResourceText
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @resource    ankiDeck PUT_HERE_YOUR_DECK.txt
 // ==/UserScript==
 
 //not empty val
-var originAnkiDeck = GM_getResourceText("ankiDeck"),
-	std = window.eval("require('study').default;"),
+var std = window.eval("require('study').default;"),
 	defaultDeck = new Deck("question default", "answer default", 10001, 20002),
-	defaultDecks =
+	defaultDecks = 
 	{
-		defaultId:
-			{
-				cards: defaultDeck,
-				updateDeck: false
-			}
-	};
+		defaultId :	new Decks(defaultDeck)
+	}
 
 //const
 const inBstring = "<awq>",
@@ -62,18 +56,17 @@ Main();
 
 function Main()
 {
-	UrlHandler(document.URL);
-	inB = FindIndexes(inBstring, originAnkiDeck);
-	inE = FindIndexes(inEstring, originAnkiDeck);
-	console.log(inB);
-	console.log(inE);
+	//inB = FindIndexes(inBstring, originAnkiDeck);
+	//inE = FindIndexes(inEstring, originAnkiDeck);
+	//console.log(inB);
+	//console.log(inE);
 	
-	for (var i = 0; i < inB.length; i++)
-	{
-		tempStrings[i] = originAnkiDeck.slice(inB[i] + 5, inE[i]);
-		//console.log(tempStrings[i]);
-	}
-	console.log(tempStrings);
+	//for (var i = 0; i < inB.length; i++)
+	//{
+	//	tempStrings[i] = originAnkiDeck.slice(inB[i] + 5, inE[i]);
+	//	//console.log(tempStrings[i]);
+	//}
+	//console.log(tempStrings);
 	CssAdd();
 	SetSettings();
 	SetEventsOnDecks(document.URL);
@@ -101,6 +94,9 @@ function SetSettings()
 
 function LoadSettings()
 {
+
+	//DeleteValues("awq_decks");
+
 	//THIS IS ABOUT DEBUG
 	if (HasValue("awq_debug", false))
 	{
@@ -112,6 +108,7 @@ function LoadSettings()
 	if (HasValue("awq_decks", JSON.stringify(defaultDecks)))
 	{
 		decks = JSON.parse(GM_getValue("awq_decks"));
+		//console.log(decks);
 	}
 
 	//THIS IS ABOUT lastIdChosen
@@ -230,8 +227,17 @@ function Deck(question, answer, idTimeOne, idTimeTwo)
 	this.question = [question];
 	this.answer = [answer];
 	this.idTimeOne = [idTimeOne];
-	this.IdTimeTwo = [idTimeTwo];
+	this.idTimeTwo = [idTimeTwo];
 }
+
+//Construction of Decks
+function Decks(cards)
+{
+	this.cards = cards;
+	this.updateDeck = false;
+	this.firstTime = true;
+	this.customSettings = {};
+};
 
 function SetEventSettings()
 {
@@ -261,6 +267,21 @@ function SetEventsOnDecks(url)
 		{
 			lastIdChosen = this.id;
 			GM_setValue("awq_lastIdChosen", lastIdChosen);
+		});
+	} else
+	{
+		return;
+	}
+}
+
+function SetEventsOnStudy(url)
+{
+	if (url.match(/http:\/\/ankiweb\.net\/study/i) || url.match(/https:\/\/ankiweb\.net\/study/i))
+	{
+		$("#leftStudyMenu a:first-child").on("mouseover", function ()
+		{
+			UpdateGMDecks();
+			console.log("UpdateGM");
 		});
 	} else
 	{
@@ -327,6 +348,10 @@ function CssAdd()
 		background-color: #d80275; border-color: #d80275;\
 		}"));
 
+	$("head").append($("<style type=text/css></style>").text("button.awq_first { \
+		background-color: #000; border-color: #000;\
+		}"));
+
 	$("head").append($("<style type=text/css></style>").text("button.awq_false:hover { \
 		background-color: #a5025a; border-color: #a5025a;\
 		}"));
@@ -334,47 +359,42 @@ function CssAdd()
 	$("head").append($("<!--End of AnkiWeb Quiz v" + GM_info.script.version + " CSS-->"));
 }
 
-//hHander for url
-function UrlHandler(url)
-{
-	if (url.match(/http:\/\/ankiweb\.net\/study/i) || url.match(/https:\/\/ankiweb\.net\/study/i))
-	{
-		this.oldHash = window.location.pathname;
-		this.Check;
-
-		var that = this;
-		var detect = function ()
-		{
-			if (that.oldHash != window.location.pathname)
-			{
-				that.oldHash = window.location.pathname;
-				UpdateGMValue();
-			}
-		};
-		this.Check = setInterval(function () { detect() }, 200);
-	} else
-	{
-		return;
-	}
-}
-
 function GetDeck(idDeck)
 {
 	var keyNames = Object.keys(decks);
 	for (var i in keyNames)
 	{
-		if (idDeck == keyNames)
+		if (idDeck == keyNames[i])
 		{
 			deck = decks[idDeck].cards;
-		} else
-		{
-			decks[idDeck] =
-			{
-				cards: defaultDeck,
-				updateDeck: false
-			}
-			deck = decks[idDeck].cards;
+			return;
 		}
+	}
+
+	if(deck == undefined)
+	{
+		decks[idDeck] = new Decks(defaultDeck);
+		deck = decks[idDeck].cards;
+		return;
+	}
+}
+
+//THIS FUNC FOR UPDATING Greasemonkey value JSON OBJECT
+function UpdateGMDecks()
+{
+	try
+	{
+		if (deck["answer"].length < amountButtons)
+		{
+			decks[lastIdChosen].firstTime = true;
+		}
+
+		var gmDecks = JSON.stringify(decks);
+		GM_setValue("awq_decks", gmDecks);
+	}
+	catch (e)
+	{
+		console.log(e);
 	}
 }
 
@@ -386,26 +406,117 @@ $(document).ready(function () {
 	$("#studynow").click(function () {
 		setTimeout(function ()
 		{
-			//var asd = std.currentCard;
-			//console.log(asd[1]);
-			//console.log($.trim(StripTags(asd[1].replace(/<style>[\s\S]*?<\/style>/ig, ''))));
 			SetUI();
-			searchFor = SearchQuestion();
+			SetEventsOnStudy(document.URL);
+			if (decks[lastIdChosen].firstTime == true)
+			{
+				FirstTimeDeck(std.currentCard, std["deck"].cards);
+			} else
+			{
+				var question = $.trim(StripNewLines(StripTags(std.currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+					answer = $.trim(StripNewLines(StripTags(std.currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+					idTimeOne = std.currentCard[0],
+					idTimeTwo = std.currentCard[4];
+				UpdateDeck(question, answer, idTimeOne, idTimeTwo);
+			}
+			//searchFor = SearchQuestion();
 			if (debug)
 			{
-				console.log("searchFor:" + searchFor);
+				console.log(std);
+				console.log("---");
+				//console.log($.trim(StripNewLines(StripTags(asd[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))));
+				//console.log($.trim(StripNewLines(StripTags(asd[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))));
+				console.log("---");
+				//console.log("FirstTime:" + decks[lastIdChosen].firstTime);
+				console.log(decks);
+				console.log($.trim($("#rightStudyMenu").text()).split("+"));
+				//console.log("searchFor:" + searchFor);
 			}
-			GetTrueAnswer(searchFor);
+			//GetTrueAnswer(searchFor);
+			GetTrueAnswerU(std.currentCard[0], std.currentCard[4]);
 			if (debug) {
 				console.log('Study Click');
 			}
 		}, 1500);
 	});
 
+	function NumberOfButtons()
+	{
+		var buttons = "";
+		for (var i = 0; i < amountButtons; i++)
+		{
+			buttons += "<button class=awq_btn></button>";
+		}
+		return buttons;
+	}
+
+	//THIS FUNC FOR FIRST TIME USING DECK AFteR INSTALL SCRIPT
+	function FirstTimeDeck(currentCard, nextCards)
+	{
+		var questions = [$.trim(StripNewLines(StripTags(currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, ''))))],
+			answers = [$.trim(StripNewLines(StripTags(currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, ''))))],
+			idTimeOnes = [currentCard[0]],
+			idTimeTwos = [currentCard[4]];
+
+		for (var i = 0; i < nextCards.length; i++)
+		{
+			questions.push($.trim(StripNewLines(StripTags(nextCards[i][1].replace(/<style>[\s\S]*?<\/style>/ig, '')))));
+			answers.push($.trim(StripNewLines(StripTags(nextCards[i][2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))));
+			idTimeOnes.push(nextCards[i][0]);
+			idTimeTwos.push(nextCards[i][4]);
+		}
+
+		for (var i = 0; i < questions.length; i++)
+		{
+			UpdateDeck(questions[i], answers[i], idTimeOnes[i], idTimeTwos[i]);
+		}
+
+		decks[lastIdChosen].firstTime = false;
+	}
+
+	//THIS FUNC FOR UPDATING DECK OBJECT
+	function UpdateDeck(question, answer, idTimeOne, idTimeTwo)
+	{
+		//TODO FORCE UPDATE
+		if (question.length >= 350)
+		{
+			question = "CARD TOO LONG: " + question.slice(0, 350);
+		}
+
+		if (answer.length >= 350)
+		{
+			answer = "CARD TOO LONG: " + answer.slice(0, 350);
+		}
+
+		//CHECK FOR REPEAT
+		for (var i = 0; i < deck["idTimeOne"].length; i++)
+		{
+			if (idTimeOne === deck["idTimeOne"][i] && idTimeTwo === deck["idTimeTwo"][i])
+			{
+				return;
+			}
+		}
+
+		//First time deck detected(delete default card)
+		if (deck["idTimeOne"][0] === 10001 && deck["idTimeTwo"][0] === 20002)
+		{
+			deck["question"][0] = question;
+			deck["answer"][0] = answer;
+			deck["idTimeOne"][0] = idTimeOne;
+			deck["idTimeTwo"][0] = idTimeTwo;
+		} else
+		{
+			deck["question"].push(question);
+			deck["answer"].push(answer);
+			deck["idTimeOne"].push(idTimeOne);
+			deck["idTimeTwo"].push(idTimeTwo);
+		}
+	}
+
 	function SetUI()
 	{
 		const buttonP = $("<button id=awq_quiz class=btn style=margin-left:4px></button>").text("Quiz");
-		const button = $("<div class=awq_rstyle></div>").html("<button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button><button class=awq_btn></button>");
+		const button = $("<div class=awq_rstyle></div>").html(NumberOfButtons());
 
 		$(".pt-1").before("<br>");
 		$(".pt-1").before(button);
@@ -428,6 +539,7 @@ $(document).ready(function () {
 
 		$("#ansbuta").click(function ()
 		{
+			CheckStatus($.trim($("#rightStudyMenu").text()).split("+"));
 			setTimeout(function ()
 			{
 				if (debug)
@@ -436,21 +548,25 @@ $(document).ready(function () {
 				}
 				$("#ease1").click(function ()
 				{
-					OtherEvent();
+					OtherEventU();
+					//OtherEvent();
 				});
 				$("#ease2").click(function ()
 				{
-					OtherEvent();
+					OtherEventU();
+					//OtherEvent();
 				});
 				$("#ease3").click(function ()
 				{
-					OtherEvent();
+					OtherEventU();
+					//OtherEvent();
 				});
 				$("#ease4").click(function ()
 				{
-					OtherEvent();
+					OtherEventU();
+					//OtherEvent();
 				});
-			}, 500);
+			}, 250);
 		});
 
 		$(".awq_btn").click(function ()
@@ -491,6 +607,26 @@ $(document).ready(function () {
 				}
 			}
 		});
+	}
+
+	function CheckStatus(statusArr)
+	{
+		var one = parseInt(statusArr[0]),
+			two = parseInt(statusArr[1]),
+			tree = parseInt(statusArr[2]);
+		if (debug)
+		{
+			console.log(one);
+			console.log(two);
+			console.log(tree);
+		}
+		if ((one + two + tree) === 0)
+		{
+			UpdateGMDecks();
+		} else
+		{
+			return;
+		}
 	}
 
 	function EscapeRegExp(string)
@@ -575,6 +711,20 @@ $(document).ready(function () {
 		return trueString;
 	}
 
+	function GetTrueAnswerU(idOne, idTwo)
+	{
+		for (var i = 0; i < deck["idTimeOne"].length; i++)
+		{
+			if (idOne === deck["idTimeOne"][i] && idTwo === deck["idTimeTwo"][i])
+			{
+				trueAnswer = deck["answer"][i];
+				trueId = i;
+				GetFalseAnswersU(trueId);
+				return;
+			}
+		}
+	}
+
 	function GetTrueAnswer(sFor)
 	{
 		var regex = '(^|\\s|\\b|(n\\>))';
@@ -615,6 +765,73 @@ $(document).ready(function () {
 		}
 	}
 
+	function GetFalseAnswersU(trueId)
+	{
+		tempArr.length = 0;
+		if (deck["answer"].length <= amountButtons)
+		{
+			var temp = [];
+			temp = temp.concat(deck["answer"]);
+			if (debug)
+			{
+				console.log(temp);
+			}
+			for (var i = 0; i < (amountButtons - (deck["answer"].length - 1)); i++)
+			{
+				temp.push(textDefault);
+			}
+			if (debug)
+			{
+				console.log(temp);
+			}
+		}
+		for (var i = 0; i < (amountButtons - 1); i++)
+		{
+			if (deck["answer"].length > amountButtons)
+			{
+				id = GetRand(deck["answer"]);
+				if (id != trueId)
+				{
+					if (debug)
+					{
+						console.log(deck["answer"][id]);
+					}
+					falseAnswers[i] = deck["answer"][id];
+					if (debug)
+					{
+						console.log("***False answer " + i + " : " + falseAnswers[i] + " id: " + id);
+						//console.log("inBegAnswer: " + str.indexOf(inBegAnswer) + " : " + str.indexOf(inEndAnswer) + " inEndAnswer");
+					}
+				} else if(id === 0 || id === trueId)
+				{
+					id = GetRand(deck["answer"]);
+					i--;
+				}
+			} else
+			{
+				id = GetRand(temp);
+				if (id != trueId)
+				{
+					if (debug)
+					{
+						console.log(temp[id]);
+					}
+					falseAnswers[i] = temp[id];
+					if (debug)
+					{
+						console.log("***False answer " + i + " : " + falseAnswers[i] + " id: " + id);
+						//console.log("inBegAnswer: " + str.indexOf(inBegAnswer) + " : " + str.indexOf(inEndAnswer) + " inEndAnswer");
+					}
+				} else
+				{
+					id = GetRand(temp);
+					i--;
+				}
+			}
+		}
+		RamdomButton();
+	}
+
 	function GetFalseAnswers(trueId) {
 		tempArr.length = 0;
 		for (var i = 0; i < 7; i++) {
@@ -635,6 +852,53 @@ $(document).ready(function () {
 			}
 		}
 		RamdomButton();
+	}
+
+	function OtherEventU()
+	{
+		if (debug)
+		{
+			console.log("Button click");
+			console.log("---------------");
+			//console.log(std.currentCard);
+			//console.log($("awq").text().length);
+		}
+		$(".awq_rstyle").hide();
+		$(".awq_btn").removeClass("awq_first");
+		if (std.currentCard == undefined)
+		{
+			setTimeout(function ()
+			{
+				if (std.currentCard == undefined)
+				{
+					setTimeout(function ()
+					{
+						var question = $.trim(StripNewLines(StripTags(std.currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+							answer = $.trim(StripNewLines(StripTags(std.currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+							idTimeOne = std.currentCard[0],
+							idTimeTwo = std.currentCard[4];
+						UpdateDeck(question, answer, idTimeOne, idTimeTwo);
+						GetTrueAnswerU(idTimeOne, idTimeTwo);
+					}, 3000);
+				} else
+				{
+					var question = $.trim(StripNewLines(StripTags(std.currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+						answer = $.trim(StripNewLines(StripTags(std.currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+						idTimeOne = std.currentCard[0],
+						idTimeTwo = std.currentCard[4];
+					UpdateDeck(question, answer, idTimeOne, idTimeTwo);
+					GetTrueAnswerU(idTimeOne, idTimeTwo);
+				}
+			}, 1000);
+		} else
+		{
+			var question = $.trim(StripNewLines(StripTags(std.currentCard[1].replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+				answer = $.trim(StripNewLines(StripTags(std.currentCard[2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))),
+				idTimeOne = std.currentCard[0],
+				idTimeTwo = std.currentCard[4];
+			UpdateDeck(question, answer, idTimeOne, idTimeTwo);
+			GetTrueAnswerU(idTimeOne, idTimeTwo);
+		}
 	}
 
 	function OtherEvent()
@@ -676,9 +940,10 @@ $(document).ready(function () {
 		}
 	}
 
+	//
 	//random functions
 	function InArray(array, el) {
-		for (var i = 0 ; i < array.length; i++)
+		for (var i = 0; i < array.length; i++)
 			if (array[i] == el) return true;
 		return false;
 	}
@@ -692,12 +957,13 @@ $(document).ready(function () {
 		return GetRand(array);
 	}
 	//end of random functions
+	//
 
 	function RamdomButton()
 	{
+		var allAnswers = [];
 		buttons.length = 0;
 		tempArr.length = 0;
-		var allAnswers = [];
 		allAnswers[0] = trueAnswer;
 		for (var i = 1; i <= falseAnswers.length; i++) {
 			allAnswers[i] = falseAnswers[i - 1];
@@ -741,15 +1007,22 @@ $(document).ready(function () {
 			{
 				$(sel[i]).html(buttons[i].slice(0, 40) + "...");
 				$(sel[i]).attr("title", buttons[i]);
+
+				//change color of button with textDefault
+				if ($(sel[i]).attr("title") == textDefault)
+				{
+					$(sel[i]).addClass("awq_first");
+				}
 			}
-			
+
 			if (debug)
 			{
-				//console.log(sel[i]);
+				//console.log($(sel[i]).attr("title"));
 				console.log(buttons[i] + " Length: " + buttons[i].length);
 				console.log(buttons[i].includes("</ruby>"));
 			}
 		}
+
 
 		CheckPresedButtons();
 	}
@@ -758,6 +1031,7 @@ $(document).ready(function () {
 	{ 
 		$(".awq_btn").removeClass("awq_true");
 		$(".awq_btn").removeClass("awq_false");
+		//$(".awq_btn").removeClass("awq_first");
 	}
 
 	console.log("AnkiWeb Quiz v" + GM_info.script.version + " Initialized"); 
@@ -768,12 +1042,19 @@ function StripTags(string)
 	return string.replace(/<\w+(\s+("[^"]*"|'[^']*'|[^>])+)?(\/)?>|<\/\w+>/gi, '');
 }
 
+function StripNewLines(string)
+{
+	return string.replace(/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/gi, '\n');
+}
+
 // ------------
 //  TODO
 // ------------
 
 /* TODO STARTS
-	0)REWRITE EVERYTHING WITHOUT USING GETRESOURCE AND CHANGING CODE
+✓	  0)REWRITE EVERYTHING WITHOUT USING GETRESOURCE AND CHANGING CODE	//DONE 1.0.0
+		0.1)Make custom settings
+		0.2)Make force update deck (Because once you updated card, in gm_value will be old version of card)
 ✓    1)Make it only one element of buttons  //DONE 0.0.9
 		1.1)Increase numbers of buttons to 10-12(optional through settings???)
 ✓    2)Make it limit of length answer and put whole in attribute title  //DONE 0.1.0
