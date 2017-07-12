@@ -6,8 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     1.0.0
-// @grant       GM_getResourceText
+// @version     1.0.1
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
@@ -280,8 +279,11 @@ function SetEventsOnStudy(url)
 	{
 		$("#leftStudyMenu a:first-child").on("mouseover", function ()
 		{
-			UpdateGMDecks();
-			console.log("UpdateGM");
+			try
+			{
+				UpdateGMDecks();
+				console.log("UpdateGM");
+			} catch (e) { console.log(e);}
 		});
 	} else
 	{
@@ -863,6 +865,10 @@ $(document).ready(function () {
 			//console.log(std.currentCard);
 			//console.log($("awq").text().length);
 		}
+
+		//event on Edit button
+		SetEventsOnStudy(document.URL);
+
 		$(".awq_rstyle").hide();
 		$(".awq_btn").removeClass("awq_first");
 		if (std.currentCard == undefined)
