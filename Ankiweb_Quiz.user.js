@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     1.0.1
+// @version     1.0.2
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
@@ -78,6 +78,7 @@ function SetSettings()
 		<div id=awq_settingsPanel class=awq_settingsP>\
 		<form> \
 		<br> \
+		Amount Buttons(4-20):<input type=number name=amountBtn id=awq_amountBtn min=4 max=20 value=4></input><br> \
 		Debug: <input type=checkbox name=debug id=awq_debug></input>\
 		</form>\
 		<button id=hideButton class=awq_style>Hide</button>\
@@ -121,6 +122,7 @@ function LoadSettings()
 	if (HasValue("awq_amountButtons", 8))
 	{
 		amountButtons = GM_getValue("awq_amountButtons");
+		$("#awq_amountBtn").prop("value", amountButtons);
 	}
 
 	//Console log prefs with value
@@ -256,6 +258,13 @@ function SetEventSettings()
 		debug = $(this).prop("checked");
 		alert("Settings has been changed. Please reload the page.");
 	});
+
+	//$("#awq_debug").change(function ()
+	//{
+	//	GM_setValue("awq_debug", $(this).prop("checked"));
+	//	debug = $(this).prop("checked");
+	//	alert("Settings has been changed. Please reload the page.");
+	//});
 }
 
 function SetEventsOnDecks(url)
