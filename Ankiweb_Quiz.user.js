@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     1.0.2
+// @version     1.1.0
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
@@ -95,7 +95,7 @@ function SetSettings()
 function LoadSettings()
 {
 
-	//DeleteValues("awq_decks");
+	DeleteValues("old");
 
 	//THIS IS ABOUT DEBUG
 	if (HasValue("awq_debug", false))
@@ -204,7 +204,7 @@ function DeleteValues(nameVal)
 		case "old":
 			for (var i = 0; i < vals.length; i++)
 			{
-				if (vals[i] === "debug" || vals[i] === "debugA")
+				if (vals[i] === "debug" || vals[i] === "debugA" || vals[i] === "awq_amountBtn")
 				{
 					GM_deleteValue(vals[i]);
 				}
@@ -259,12 +259,12 @@ function SetEventSettings()
 		alert("Settings has been changed. Please reload the page.");
 	});
 
-	//$("#awq_debug").change(function ()
-	//{
-	//	GM_setValue("awq_debug", $(this).prop("checked"));
-	//	debug = $(this).prop("checked");
-	//	alert("Settings has been changed. Please reload the page.");
-	//});
+	$("#awq_amountBtn").change(function ()
+	{
+		GM_setValue("awq_amountButtons", $(this).prop("value"));
+		amountButtons = $(this).prop("value");
+		alert("Settings has been changed. Please reload the page.");
+	});
 }
 
 function SetEventsOnDecks(url)
@@ -1071,7 +1071,7 @@ function StripNewLines(string)
 		0.1)Make custom settings
 		0.2)Make force update deck (Because once you updated card, in gm_value will be old version of card)
 ✓    1)Make it only one element of buttons  //DONE 0.0.9
-		1.1)Increase numbers of buttons to 10-12(optional through settings???)
+✓		1.1)Increase numbers of buttons to 10-12(optional through settings???)	//DONE 1.1.0
 ✓    2)Make it limit of length answer and put whole in attribute title  //DONE 0.1.0
 ✓    3)Make it settings, almost done in 0.1.0	//DONE 0.2.0
 ✓        3.1)Debug   //DONE 0.1.0 
