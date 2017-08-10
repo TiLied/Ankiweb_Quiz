@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     1.1.0
+// @version     1.1.1
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
@@ -55,17 +55,6 @@ Main();
 
 function Main()
 {
-	//inB = FindIndexes(inBstring, originAnkiDeck);
-	//inE = FindIndexes(inEstring, originAnkiDeck);
-	//console.log(inB);
-	//console.log(inE);
-	
-	//for (var i = 0; i < inB.length; i++)
-	//{
-	//	tempStrings[i] = originAnkiDeck.slice(inB[i] + 5, inE[i]);
-	//	//console.log(tempStrings[i]);
-	//}
-	//console.log(tempStrings);
 	CssAdd();
 	SetSettings();
 	SetEventsOnDecks(document.URL);
@@ -736,46 +725,6 @@ $(document).ready(function () {
 		}
 	}
 
-	function GetTrueAnswer(sFor)
-	{
-		var regex = '(^|\\s|\\b|(n\\>))';
-		var tempQuestion;
-		var strQ;
-		regex += EscapeRegExp(sFor);
-		regex += '($|\\s|\\b|(\\<\\/a))';
-
-		if (debug)
-		{
-			console.log(regex);
-		}
-
-		for (var i = 0; i < tempStrings.length; i++) {
-			//console.log('sFor =' + sFor + " leng " + sFor.length + " debug : " + new RegExp(regex, "g").test(tempStrings[i]));
-			//contains = tempStrings[i].matches(".*\\bram\\b.*");
-			//tempQuestion = '';
-			//strQ = '';
-			//strQ = tempStrings[i].toString();
-			//tempQuestion = $.trim(str.slice(str.indexOf("<awq_question>") + 14, str.indexOf("</awq_question>")));
-			//console.log(tempQuestion);
-			if (new RegExp(regex, "g").test(tempStrings[i]))
-			{
-				const str = tempStrings[i].toString();
-				trueAnswer = ReplaceString($.trim(str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer))));
-				trueId = i;
-				if (debug)
-				{
-					//console.log(tempStrings[i - 1]);
-					console.log(str);
-					//console.log(tempQuestion);
-					//console.log(tempStrings[i + 1]);
-					console.log("True answer : " + trueAnswer + " id trueAnsw = " + trueId);
-				}
-				GetFalseAnswers(trueId);
-				break;
-			}
-		}
-	}
-
 	function GetFalseAnswersU(trueId)
 	{
 		tempArr.length = 0;
@@ -843,28 +792,6 @@ $(document).ready(function () {
 		RamdomButton();
 	}
 
-	function GetFalseAnswers(trueId) {
-		tempArr.length = 0;
-		for (var i = 0; i < 7; i++) {
-			id = GetRand(tempStrings);
-			if (id != trueId) {
-				if (debug) {
-					console.log(tempStrings[id]);
-				}
-				const str = tempStrings[id].toString();
-				falseAnswers[i] = str.slice(str.indexOf(inBegAnswer) + 12, str.indexOf(inEndAnswer));
-				if (debug) {
-					console.log("***False answer " + i + " : " + falseAnswers[i] + " id: " + id);
-					//console.log("inBegAnswer: " + str.indexOf(inBegAnswer) + " : " + str.indexOf(inEndAnswer) + " inEndAnswer");
-				}
-			} else {
-				id = GetRand(tempStrings);
-				i--;
-			}
-		}
-		RamdomButton();
-	}
-
 	function OtherEventU()
 	{
 		if (debug)
@@ -913,45 +840,6 @@ $(document).ready(function () {
 				idTimeTwo = std.currentCard[4];
 			UpdateDeck(question, answer, idTimeOne, idTimeTwo);
 			GetTrueAnswerU(idTimeOne, idTimeTwo);
-		}
-	}
-
-	function OtherEvent()
-	{
-		if (debug) {
-			console.log("Button click");
-			console.log("---------------");
-		}
-		searchFor = "";
-		//searchFor = $("awq_question").html();
-		searchFor = SearchQuestion();
-		if (debug) {
-			console.log("searchFor:" + searchFor);
-			console.log($("awq").text().length);
-		}
-		$(".awq_rstyle").hide();
-		if (searchFor == "") {
-			setTimeout(function () {
-				if ($("awq").text().length === 0) {
-					setTimeout(function () {
-						//searchFor = $("awq_question").html();
-						searchFor = SearchQuestion();
-						if (debug) {
-							console.log("searchFor:::" + searchFor);
-						}
-						GetTrueAnswer(searchFor);
-					}, 3000);
-				} else {
-					//searchFor = $("awq_question").html();
-					searchFor = SearchQuestion();
-					if (debug) {
-						console.log("searchFor::" + searchFor);
-					}
-					GetTrueAnswer(searchFor);
-				}
-			}, 1000);
-		} else {
-			GetTrueAnswer(searchFor);
 		}
 	}
 
