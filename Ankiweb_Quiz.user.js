@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     1.1.1
+// @version     1.1.2
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
@@ -51,14 +51,15 @@ var amountButtons,
 	decks,
 	lastIdChosen;
 
-Main();
-
-function Main()
+void function Main()
 {
+	//Place CSS in head
 	CssAdd();
+	//Set settings or create
 	SetSettings();
+	//Set event on decks page
 	SetEventsOnDecks(document.URL);
-}
+}();
 
 //Settings
 function SetSettings()
