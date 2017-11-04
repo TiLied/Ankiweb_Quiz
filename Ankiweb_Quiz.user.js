@@ -6,11 +6,16 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.1.1.min.js
 // @author      TiLied
-// @version     1.1.2
+// @version     1.2.0
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
 // @grant       GM_setValue
+// @require     https://arantius.com/misc/greasemonkey/imports/greasemonkey4-polyfill.js
+// @grant       GM.listValues
+// @grant       GM.getValue
+// @grant       GM.setValue
+// @grant       GM.deleteValue
 // ==/UserScript==
 
 //not empty val
@@ -82,68 +87,61 @@ function SetSettings()
 	LoadSettings();
 }
 
-function LoadSettings()
+async function LoadSettings()
 {
 
 	DeleteValues("old");
 
 	//THIS IS ABOUT DEBUG
-	if (HasValue("awq_debug", false))
+	if (await HasValue("awq_debug", false))
 	{
-		debug = GM_getValue("awq_debug");
+		debug = await GM.getValue("awq_debug");
 		$("#awq_debug").prop("checked", debug);
 	}
 
 	//THIS IS ABOUT DECKS
-	if (HasValue("awq_decks", JSON.stringify(defaultDecks)))
+	if (await HasValue("awq_decks", JSON.stringify(defaultDecks)))
 	{
-		decks = JSON.parse(GM_getValue("awq_decks"));
+		decks = JSON.parse(await GM.getValue("awq_decks"));
 		//console.log(decks);
 	}
 
 	//THIS IS ABOUT lastIdChosen
-	if (HasValue("awq_lastIdChosen", 000))
+	if (await HasValue("awq_lastIdChosen", 000))
 	{
-		lastIdChosen = GM_getValue("awq_lastIdChosen");
+		lastIdChosen = await GM.getValue("awq_lastIdChosen");
 		GetDeck(lastIdChosen);
 	}
 
 	//THIS IS ABOUT BUTTONS
-	if (HasValue("awq_amountButtons", 8))
+	if (await HasValue("awq_amountButtons", 8))
 	{
-		amountButtons = GM_getValue("awq_amountButtons");
+		amountButtons = await GM.getValue("awq_amountButtons");
 		$("#awq_amountBtn").prop("value", amountButtons);
 	}
 
 	//Console log prefs with value
 	console.log("*prefs:");
 	console.log("*-----*");
-	var vals = [];
-	for (var i = 0; i < GM_listValues().length; i++)
-	{
-		vals[i] = GM_listValues()[i];
-	}
+	var vals = await GM.listValues();
+
 	for (var i = 0; i < vals.length; i++)
 	{
-		console.log("*" + vals[i] + ":" + GM_getValue(vals[i]));
+		console.log("*" + vals[i] + ":" + await GM.getValue(vals[i]));
 	}
 	console.log("*-----*");
 }
 
 //Check if value exists or not.  optValue = Optional
-function HasValue(nameVal, optValue)
+async function HasValue(nameVal, optValue)
 {
-	var vals = [];
-	for (var i = 0; i < GM_listValues().length; i++)
-	{
-		vals[i] = GM_listValues()[i];
-	}
+	var vals = await GM.listValues();
 
 	if (vals.length === 0)
 	{
 		if (optValue != undefined)
 		{
-			GM_setValue(nameVal, optValue);
+			GM.setValue(nameVal, optValue);
 			return true;
 		} else
 		{
@@ -161,7 +159,7 @@ function HasValue(nameVal, optValue)
 
 	if (optValue != undefined)
 	{
-		GM_setValue(nameVal, optValue);
+		GM.setValue(nameVal, optValue);
 		return true;
 	} else
 	{
@@ -170,13 +168,9 @@ function HasValue(nameVal, optValue)
 }
 
 //Delete Values
-function DeleteValues(nameVal)
+async function DeleteValues(nameVal)
 {
-	var vals = [];
-	for (var i = 0; i < GM_listValues().length; i++)
-	{
-		vals[i] = GM_listValues()[i];
-	}
+	var vals = await GM.listValues();
 
 	if (vals.length === 0 || typeof nameVal != "string")
 	{
@@ -188,7 +182,7 @@ function DeleteValues(nameVal)
 		case "all":
 			for (var i = 0; i < vals.length; i++)
 			{
-				GM_deleteValue(vals[i]);
+				GM.deleteValue(vals[i]);
 			}
 			break;
 		case "old":
@@ -196,7 +190,7 @@ function DeleteValues(nameVal)
 			{
 				if (vals[i] === "debug" || vals[i] === "debugA" || vals[i] === "awq_amountBtn")
 				{
-					GM_deleteValue(vals[i]);
+					GM.deleteValue(vals[i]);
 				}
 			}
 			break;
@@ -205,7 +199,7 @@ function DeleteValues(nameVal)
 			{
 				if (vals[i] === nameVal)
 				{
-					GM_deleteValue(nameVal);
+					GM.deleteValue(nameVal);
 				}
 			}
 			break;
@@ -244,14 +238,14 @@ function SetEventSettings()
 
 	$("#awq_debug").change(function ()
 	{
-		GM_setValue("awq_debug", $(this).prop("checked"));
+		GM.setValue("awq_debug", $(this).prop("checked"));
 		debug = $(this).prop("checked");
 		alert("Settings has been changed. Please reload the page.");
 	});
 
 	$("#awq_amountBtn").change(function ()
 	{
-		GM_setValue("awq_amountButtons", $(this).prop("value"));
+		GM.setValue("awq_amountButtons", $(this).prop("value"));
 		amountButtons = $(this).prop("value");
 		alert("Settings has been changed. Please reload the page.");
 	});
@@ -264,7 +258,7 @@ function SetEventsOnDecks(url)
 		$("div.light-bottom-border > div:first-child > button").on("mousedown", function ()
 		{
 			lastIdChosen = this.id;
-			GM_setValue("awq_lastIdChosen", lastIdChosen);
+			GM.setValue("awq_lastIdChosen", lastIdChosen);
 		});
 	} else
 	{
@@ -391,7 +385,7 @@ function UpdateGMDecks()
 		}
 
 		var gmDecks = JSON.stringify(decks);
-		GM_setValue("awq_decks", gmDecks);
+		GM.setValue("awq_decks", gmDecks);
 	}
 	catch (e)
 	{
@@ -970,4 +964,6 @@ function StripNewLines(string)
 ✓    4)Make it full functionality of Japanese deck, partial done in 0.0.8    //DONE 0.0.9 Happy with that :)
 	5)Search question in between tags <awq_question> and </awq_question> not in whole sentence, almost done in 0.1.2
 ✓    6)TODO for loop in finding question NEED TEST IT    //DONE 0.1.7 BROKEN     //DONE 0.1.9
+	7)Support GM4+, GM3 and other userscript extensions, beta 1.2.0
+	 7.1)DELETE CALLBACK!!!
 TODO ENDS */
