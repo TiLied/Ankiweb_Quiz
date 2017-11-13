@@ -4,14 +4,14 @@
 // @description Shows quiz on ankiweb
 // @include     https://ankiweb.net/*
 // @include     http://ankiweb.net/*
-// @require     https://code.jquery.com/jquery-3.1.1.min.js
+// @require     https://code.jquery.com/jquery-3.2.1.min.js
 // @author      TiLied
-// @version     1.2.0
+// @version     1.2.2
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @require     https://arantius.com/misc/greasemonkey/imports/greasemonkey4-polyfill.js
+// @require     https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @grant       GM.listValues
 // @grant       GM.getValue
 // @grant       GM.setValue
@@ -21,10 +21,10 @@
 //not empty val
 var std = window.eval("require('study').default;"),
 	defaultDeck = new Deck("question default", "answer default", 10001, 20002),
-	defaultDecks = 
-	{
-		defaultId :	new Decks(defaultDeck)
-	}
+	defaultDecks =
+		{
+			defaultId: new Decks(defaultDeck)
+		}
 
 //const
 const inBstring = "<awq>",
@@ -58,6 +58,31 @@ var amountButtons,
 
 void function Main()
 {
+	//HACK FOR TM/POLYFILL GM4
+	Object.entries({
+		'GM_deleteValue': 'deleteValue',
+		'GM_getValue': 'getValue',
+		'GM_info': 'info',
+		'GM_listValues': 'listValues',
+		'GM_setValue': 'setValue'
+	}).forEach(([oldKey, newKey]) =>
+	{
+		if (eval("typeof " + oldKey) !== "undefined")
+			GM[newKey] = function ()
+			{
+				return new Promise((resolve, reject) =>
+				{
+					try
+					{
+						resolve(eval(oldKey).apply(this, arguments));
+					} catch (e)
+					{
+						reject(e);
+					}
+				});
+			};
+	});
+
 	//Place CSS in head
 	CssAdd();
 	//Set settings or create
@@ -70,15 +95,15 @@ void function Main()
 function SetSettings()
 {
 	const settings = $("<li class=nav-item></li>").html("<a id=awq_settings class=nav-link>Settings Ankiweb Quiz " + GM_info.script.version + "</a> \
-		<div id=awq_settingsPanel class=awq_settingsP>\
-		<form> \
-		<br> \
-		Amount Buttons(4-20):<input type=number name=amountBtn id=awq_amountBtn min=4 max=20 value=4></input><br> \
-		Debug: <input type=checkbox name=debug id=awq_debug></input>\
-		</form>\
-		<button id=hideButton class=awq_style>Hide</button>\
-		</div>\
-		");
+	<div id=awq_settingsPanel class=awq_settingsP>\
+	<form> \
+	<br> \
+	Amount Buttons(4-20):<input type=number name=amountBtn id=awq_amountBtn min=4 max=20 value=4></input><br> \
+	Debug: <input type=checkbox name=debug id=awq_debug></input>\
+	</form>\
+	<button id=hideButton class=awq_style>Hide</button>\
+	</div>\
+	");
 
 	$(".navbar-nav:first").append(settings);
 	$("#awq_settings").addClass("awq_settings");
@@ -276,7 +301,7 @@ function SetEventsOnStudy(url)
 			{
 				UpdateGMDecks();
 				console.log("UpdateGM");
-			} catch (e) { console.log(e);}
+			} catch (e) { console.log(e); }
 		});
 	} else
 	{
@@ -287,15 +312,18 @@ function SetEventsOnStudy(url)
 function FindIndexes(searchStr, str, caseSensitive)
 {
 	var searchStrLen = searchStr.length;
-	if (searchStrLen == 0) {
+	if (searchStrLen == 0)
+	{
 		return [];
 	}
 	var startIndex = 0, index, indices = [];
-	if (!caseSensitive) {
+	if (!caseSensitive)
+	{
 		str = str.toLowerCase();
 		searchStr = searchStr.toLowerCase();
 	}
-	while ((index = str.indexOf(searchStr, startIndex)) > -1) {
+	while ((index = str.indexOf(searchStr, startIndex)) > -1)
+	{
 		indices.push(index);
 		startIndex = index + searchStrLen;
 	}
@@ -308,48 +336,48 @@ function CssAdd()
 	$("head").append($("<!--Start of AnkiWeb Quiz v" + GM_info.script.version + " CSS-->"));
 
 	$("head").append($("<style type=text/css></style>").text("button.awq_btn { \
-		 \
-		}"));
+		\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("a.awq_settings { \
-		cursor: pointer;\
-		}"));
+	cursor: pointer;\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("div.awq_settingsP { \
-		position:absolute; width:300px; background-color: #fff; border-color: #eee!important; border-radius: .3rem; border: 2px solid transparent; z-index: 150;\
-		}"));
+	position:absolute; width:300px; background-color: #fff; border-color: #eee!important; border-radius: .3rem; border: 2px solid transparent; z-index: 150;\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("button.awq_style { \
-		cursor: pointer; color: #fff; background-color: #0275d8; border-color: #0275d8; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent; max-width:200px; margin:5px;\
-		}"));
+	cursor: pointer; color: #fff; background-color: #0275d8; border-color: #0275d8; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent; max-width:200px; margin:5px;\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("button.awq_style:hover { \
-		cursor: pointer; color: #fff; background-color: #025aa5; border-color: #01549b; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent;\
-		}"));
+	cursor: pointer; color: #fff; background-color: #025aa5; border-color: #01549b; padding: .75rem 1.5rem; font-size: 1rem; border-radius: .3rem; border: 1px solid transparent;\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("div.awq_rstyle { \
-		width:100%; margin-top:30px; z-index: 100;\
-		}"));
+	width:100%; margin-top:30px; z-index: 100;\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("button.awq_true { \
-		background-color: #75d802; border-color: #75d802;\
-		}"));
+	background-color: #75d802; border-color: #75d802;\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("button.awq_true:hover { \
-		background-color: #5aa502; border-color: #5aa502;\
-		}"));
+	background-color: #5aa502; border-color: #5aa502;\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("button.awq_false { \
-		background-color: #d80275; border-color: #d80275;\
-		}"));
+	background-color: #d80275; border-color: #d80275;\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("button.awq_first { \
-		background-color: #000; border-color: #000;\
-		}"));
+	background-color: #000; border-color: #000;\
+	}"));
 
 	$("head").append($("<style type=text/css></style>").text("button.awq_false:hover { \
-		background-color: #a5025a; border-color: #a5025a;\
-		}"));
+	background-color: #a5025a; border-color: #a5025a;\
+	}"));
 
 	$("head").append($("<!--End of AnkiWeb Quiz v" + GM_info.script.version + " CSS-->"));
 }
@@ -366,7 +394,7 @@ function GetDeck(idDeck)
 		}
 	}
 
-	if(deck == undefined)
+	if (deck == undefined)
 	{
 		decks[idDeck] = new Decks(defaultDeck);
 		deck = decks[idDeck].cards;
@@ -393,12 +421,13 @@ function UpdateGMDecks()
 	}
 }
 
-$(document).ready(function () {
+$(document).ready(function ()
+{
 
 	// Append some text to the element with id someText using the jQuery library.
 	//$("#studynow").append(" more text...................");
-
-	$("#studynow").click(function () {
+	$("#studynow").click(function ()
+	{
 		setTimeout(function ()
 		{
 			SetUI();
@@ -429,7 +458,8 @@ $(document).ready(function () {
 			}
 			//GetTrueAnswer(searchFor);
 			GetTrueAnswerU(std.currentCard[0], std.currentCard[4]);
-			if (debug) {
+			if (debug)
+			{
 				console.log('Study Click');
 			}
 		}, 1500);
@@ -528,7 +558,8 @@ $(document).ready(function () {
 	function SettingsEvents()
 	{
 
-		$("#awq_quiz").click(function () {
+		$("#awq_quiz").click(function ()
+		{
 			$(".awq_rstyle").toggle();
 		});
 
@@ -757,7 +788,7 @@ $(document).ready(function () {
 						console.log("***False answer " + i + " : " + falseAnswers[i] + " id: " + id);
 						//console.log("inBegAnswer: " + str.indexOf(inBegAnswer) + " : " + str.indexOf(inEndAnswer) + " inEndAnswer");
 					}
-				} else if(id === 0 || id === trueId)
+				} else if (id === 0 || id === trueId)
 				{
 					id = GetRand(deck["answer"]);
 					i--;
@@ -840,15 +871,18 @@ $(document).ready(function () {
 
 	//
 	//random functions
-	function InArray(array, el) {
+	function InArray(array, el)
+	{
 		for (var i = 0; i < array.length; i++)
 			if (array[i] == el) return true;
 		return false;
 	}
 
-	function GetRand(array) {
+	function GetRand(array)
+	{
 		var rand = Math.floor(Math.random() * array.length);
-		if (!InArray(tempArr, rand)) {
+		if (!InArray(tempArr, rand))
+		{
 			tempArr.push(rand);
 			return rand;
 		}
@@ -863,19 +897,23 @@ $(document).ready(function () {
 		buttons.length = 0;
 		tempArr.length = 0;
 		allAnswers[0] = trueAnswer;
-		for (var i = 1; i <= falseAnswers.length; i++) {
+		for (var i = 1; i <= falseAnswers.length; i++)
+		{
 			allAnswers[i] = falseAnswers[i - 1];
 		}
-		if (debug) {
+		if (debug)
+		{
 			console.log("False answers :");
 			console.log(falseAnswers);
 			console.log("ALL answers :");
 			console.log(allAnswers);
 		}
-		for (var i = 0; i < allAnswers.length; i++) {
+		for (var i = 0; i < allAnswers.length; i++)
+		{
 			buttons[i] = $.trim(allAnswers[GetRand(allAnswers)]);
 		}
-		if (debug) {
+		if (debug)
+		{
 			console.log("Random order :) = " + buttons);
 			// console.log($(".awq_LeftSide").html());
 		}
@@ -926,13 +964,13 @@ $(document).ready(function () {
 	}
 
 	function CheckPresedButtons()
-	{ 
+	{
 		$(".awq_btn").removeClass("awq_true");
 		$(".awq_btn").removeClass("awq_false");
 		//$(".awq_btn").removeClass("awq_first");
 	}
 
-	console.log("AnkiWeb Quiz v" + GM_info.script.version + " Initialized"); 
+	console.log("AnkiWeb Quiz v" + GM_info.script.version + " initialization");
 });
 
 function StripTags(string)
@@ -944,7 +982,6 @@ function StripNewLines(string)
 {
 	return string.replace(/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/gi, '\n');
 }
-
 // ------------
 //  TODO
 // ------------
