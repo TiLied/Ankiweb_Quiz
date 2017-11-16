@@ -6,7 +6,7 @@
 // @include     http://ankiweb.net/*
 // @require     https://code.jquery.com/jquery-3.2.1.min.js
 // @author      TiLied
-// @version     1.2.2
+// @version     1.2.3
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
@@ -58,31 +58,6 @@ var amountButtons,
 
 void function Main()
 {
-	//HACK FOR TM/POLYFILL GM4
-	Object.entries({
-		'GM_deleteValue': 'deleteValue',
-		'GM_getValue': 'getValue',
-		'GM_info': 'info',
-		'GM_listValues': 'listValues',
-		'GM_setValue': 'setValue'
-	}).forEach(([oldKey, newKey]) =>
-	{
-		if (eval("typeof " + oldKey) !== "undefined")
-			GM[newKey] = function ()
-			{
-				return new Promise((resolve, reject) =>
-				{
-					try
-					{
-						resolve(eval(oldKey).apply(this, arguments));
-					} catch (e)
-					{
-						reject(e);
-					}
-				});
-			};
-	});
-
 	//Place CSS in head
 	CssAdd();
 	//Set settings or create
@@ -94,7 +69,7 @@ void function Main()
 //Settings
 function SetSettings()
 {
-	const settings = $("<li class=nav-item></li>").html("<a id=awq_settings class=nav-link>Settings Ankiweb Quiz " + GM_info.script.version + "</a> \
+	const settings = $("<li class=nav-item></li>").html("<a id=awq_settings class=nav-link>Settings Ankiweb Quiz " + GM.info.script.version + "</a> \
 	<div id=awq_settingsPanel class=awq_settingsP>\
 	<form> \
 	<br> \
@@ -333,7 +308,7 @@ function FindIndexes(searchStr, str, caseSensitive)
 //css styles adds
 function CssAdd()
 {
-	$("head").append($("<!--Start of AnkiWeb Quiz v" + GM_info.script.version + " CSS-->"));
+	$("head").append($("<!--Start of AnkiWeb Quiz v" + GM.info.script.version + " CSS-->"));
 
 	$("head").append($("<style type=text/css></style>").text("button.awq_btn { \
 		\
@@ -379,7 +354,7 @@ function CssAdd()
 	background-color: #a5025a; border-color: #a5025a;\
 	}"));
 
-	$("head").append($("<!--End of AnkiWeb Quiz v" + GM_info.script.version + " CSS-->"));
+	$("head").append($("<!--End of AnkiWeb Quiz v" + GM.info.script.version + " CSS-->"));
 }
 
 function GetDeck(idDeck)
@@ -970,7 +945,7 @@ $(document).ready(function ()
 		//$(".awq_btn").removeClass("awq_first");
 	}
 
-	console.log("AnkiWeb Quiz v" + GM_info.script.version + " initialization");
+	console.log("AnkiWeb Quiz v" + GM.info.script.version + " initialization");
 });
 
 function StripTags(string)
@@ -1001,6 +976,6 @@ function StripNewLines(string)
 ✓    4)Make it full functionality of Japanese deck, partial done in 0.0.8    //DONE 0.0.9 Happy with that :)
 	5)Search question in between tags <awq_question> and </awq_question> not in whole sentence, almost done in 0.1.2
 ✓    6)TODO for loop in finding question NEED TEST IT    //DONE 0.1.7 BROKEN     //DONE 0.1.9
-	7)Support GM4+, GM3 and other userscript extensions, beta 1.2.0
+✓	 7)Support GM4+, GM3 and other userscript extensions, beta 1.2.0	//DONE 1.2.3
 	 7.1)DELETE CALLBACK!!!
 TODO ENDS */
