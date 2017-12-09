@@ -4,9 +4,11 @@
 // @description Shows quiz on ankiweb
 // @include     https://ankiweb.net/*
 // @include     http://ankiweb.net/*
+// @include     https://ankiuser.net/*
+// @include     http://ankiuser.net/*
 // @require     https://code.jquery.com/jquery-3.2.1.min.js
 // @author      TiLied
-// @version     1.2.3
+// @version     1.2.4
 // @grant       GM_listValues
 // @grant       GM_deleteValue
 // @grant       GM_getValue
@@ -24,7 +26,7 @@ var std = window.eval("require('study').default;"),
 	defaultDecks =
 		{
 			defaultId: new Decks(defaultDeck)
-		}
+		};
 
 //const
 const inBstring = "<awq>",
@@ -125,7 +127,7 @@ async function LoadSettings()
 	console.log("*-----*");
 	var vals = await GM.listValues();
 
-	for (var i = 0; i < vals.length; i++)
+	for (let i = 0; i < vals.length; i++)
 	{
 		console.log("*" + vals[i] + ":" + await GM.getValue(vals[i]));
 	}
@@ -149,7 +151,7 @@ async function HasValue(nameVal, optValue)
 		}
 	}
 
-	for (var i = 0; i < vals.length; i++)
+	for (let i = 0; i < vals.length; i++)
 	{
 		if (vals[i] === nameVal)
 		{
@@ -180,13 +182,13 @@ async function DeleteValues(nameVal)
 	switch (nameVal)
 	{
 		case "all":
-			for (var i = 0; i < vals.length; i++)
+			for (let i = 0; i < vals.length; i++)
 			{
 				GM.deleteValue(vals[i]);
 			}
 			break;
 		case "old":
-			for (var i = 0; i < vals.length; i++)
+			for (let i = 0; i < vals.length; i++)
 			{
 				if (vals[i] === "debug" || vals[i] === "debugA" || vals[i] === "awq_amountBtn")
 				{
@@ -195,7 +197,7 @@ async function DeleteValues(nameVal)
 			}
 			break;
 		default:
-			for (var i = 0; i < vals.length; i++)
+			for (let i = 0; i < vals.length; i++)
 			{
 				if (vals[i] === nameVal)
 				{
@@ -360,7 +362,7 @@ function CssAdd()
 function GetDeck(idDeck)
 {
 	var keyNames = Object.keys(decks);
-	for (var i in keyNames)
+	for (let i in keyNames)
 	{
 		if (idDeck == keyNames[i])
 		{
@@ -443,7 +445,7 @@ $(document).ready(function ()
 	function NumberOfButtons()
 	{
 		var buttons = "";
-		for (var i = 0; i < amountButtons; i++)
+		for (let i = 0; i < amountButtons; i++)
 		{
 			buttons += "<button class=awq_btn></button>";
 		}
@@ -458,7 +460,7 @@ $(document).ready(function ()
 			idTimeOnes = [currentCard[0]],
 			idTimeTwos = [currentCard[4]];
 
-		for (var i = 0; i < nextCards.length; i++)
+		for (let i = 0; i < nextCards.length; i++)
 		{
 			questions.push($.trim(StripNewLines(StripTags(nextCards[i][1].replace(/<style>[\s\S]*?<\/style>/ig, '')))));
 			answers.push($.trim(StripNewLines(StripTags(nextCards[i][2].replace(/[\s\S]*?(<hr id=answer>)/ig, '').replace(/<style>[\s\S]*?<\/style>/ig, '')))));
@@ -466,7 +468,7 @@ $(document).ready(function ()
 			idTimeTwos.push(nextCards[i][4]);
 		}
 
-		for (var i = 0; i < questions.length; i++)
+		for (let i = 0; i < questions.length; i++)
 		{
 			UpdateDeck(questions[i], answers[i], idTimeOnes[i], idTimeTwos[i]);
 		}
@@ -489,7 +491,7 @@ $(document).ready(function ()
 		}
 
 		//CHECK FOR REPEAT
-		for (var i = 0; i < deck["idTimeOne"].length; i++)
+		for (let i = 0; i < deck["idTimeOne"].length; i++)
 		{
 			if (idTimeOne === deck["idTimeOne"][i] && idTimeTwo === deck["idTimeTwo"][i])
 			{
@@ -661,7 +663,7 @@ $(document).ready(function ()
 			var x = 0;
 			if (contentText >= contentSpan)
 			{
-				for (var i = 0; i < contentText.length; i++)
+				for (let i = 0; i < contentText.length; i++)
 				{
 					rubyVal += $.trim(contentText[i].nodeValue);
 					if (x < contentSpan.length)
@@ -677,7 +679,7 @@ $(document).ready(function ()
 				}
 			} else
 			{
-				for (var i = 0; i < contentSpan.length; i++)
+				for (let i = 0; i < contentSpan.length; i++)
 				{
 					if (x < contentText.length)
 					{
@@ -714,7 +716,7 @@ $(document).ready(function ()
 
 	function GetTrueAnswerU(idOne, idTwo)
 	{
-		for (var i = 0; i < deck["idTimeOne"].length; i++)
+		for (let i = 0; i < deck["idTimeOne"].length; i++)
 		{
 			if (idOne === deck["idTimeOne"][i] && idTwo === deck["idTimeTwo"][i])
 			{
@@ -737,7 +739,7 @@ $(document).ready(function ()
 			{
 				console.log(temp);
 			}
-			for (var i = 0; i < (amountButtons - (deck["answer"].length - 1)); i++)
+			for (let i = 0; i < (amountButtons - (deck["answer"].length - 1)); i++)
 			{
 				temp.push(textDefault);
 			}
@@ -746,7 +748,7 @@ $(document).ready(function ()
 				console.log(temp);
 			}
 		}
-		for (var i = 0; i < (amountButtons - 1); i++)
+		for (let i = 0; i < (amountButtons - 1); i++)
 		{
 			if (deck["answer"].length > amountButtons)
 			{
@@ -848,7 +850,7 @@ $(document).ready(function ()
 	//random functions
 	function InArray(array, el)
 	{
-		for (var i = 0; i < array.length; i++)
+		for (let i = 0; i < array.length; i++)
 			if (array[i] == el) return true;
 		return false;
 	}
@@ -872,7 +874,7 @@ $(document).ready(function ()
 		buttons.length = 0;
 		tempArr.length = 0;
 		allAnswers[0] = trueAnswer;
-		for (var i = 1; i <= falseAnswers.length; i++)
+		for (let i = 1; i <= falseAnswers.length; i++)
 		{
 			allAnswers[i] = falseAnswers[i - 1];
 		}
@@ -883,7 +885,7 @@ $(document).ready(function ()
 			console.log("ALL answers :");
 			console.log(allAnswers);
 		}
-		for (var i = 0; i < allAnswers.length; i++)
+		for (let i = 0; i < allAnswers.length; i++)
 		{
 			buttons[i] = $.trim(allAnswers[GetRand(allAnswers)]);
 		}
@@ -903,7 +905,7 @@ $(document).ready(function ()
 			console.log("*HERE UI BUTTONS :");
 		}
 
-		for (var i = 0; i < buttons.length; i++)
+		for (let i = 0; i < buttons.length; i++)
 		{
 			//Delete arttribute
 			if ($(sel[i]).attr("title"))
