@@ -5,7 +5,7 @@
 // @match     https://ankiuser.net/*
 // @match     https://ankiweb.net/*
 // @author	TiLied
-// @version	2.0.00
+// @version	2.0.01
 // @grant	GM_openInTab
 // @grant	GM_listValues
 // @grant	GM_getValue
@@ -19,33 +19,36 @@
 // @grant	GM.deleteValue
 // ==/UserScript==
 
-class AnkiWebQuiz {
+
+class AnkiWebQuiz
+{
 	_Options = new Object();
 	_Decks = new Object();
 
 	_DeckId;
 
-	constructor() {
+	constructor()
+	{
 		console.log("AnkiWeb Quiz v" + GM.info.script.version + " initialization");
 
 		this._LoadOptionsAndDecks();
 		this._SetCSS();
-		//_FirstTime();
 	}
 
-	_SetCSS() {
+	_SetCSS()
+	{
 		globalThis.window.document.head.append("<!--Start of AnkiWeb Quiz v" + GM.info.script.version + " CSS-->");
-
-
+			
+			
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_quizGrid" +
-			"{" +
+		"{" +
 			"display: grid;" +
 			"grid-template-columns: repeat(4,auto);" +
 			"grid-template-rows: auto;" +
-			"}</style>");
+		"}</style>");
 
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_quizButton" +
-			"{" +
+		"{" +
 			"color: #fff;" +
 			"background-color: #0275d8;" +
 			"border-color: #0275d8;" +
@@ -58,46 +61,47 @@ class AnkiWebQuiz {
 			"cursor: pointer;" +
 			"max-height: 300px;" +
 			"overflow: auto;" +
-			"}</ style >");
+		"}</ style >");
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_quizButton:hover" +
-			"{" +
+		"{" +
 			"background-color: #025aa5;" +
-			"}</ style >");
+		"}</ style >");
 
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_true" +
-			"{" +
+		"{" +
 			"background-color: #75d802;" +
-			"}</style>");
+		"}</style>");
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_true:hover" +
-			"{" +
+		"{" +
 			"background-color: #5aa502;" +
-			"}</style>");
+		"}</style>");
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>.awq_trueBorder" +
-			"{" +
+		"{" +
 			"border-color: #75d802;" +
-			"}</style>");
+		"}</style>");
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_false" +
-			"{" +
+		"{" +
 			"background-color: #d80275;" +
-			"}</style>");
+		"}</style>");
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_false:hover" +
-			"{" +
+		"{" +
 			"background-color: #a5025a;" +
-			"}</style>");
+		"}</style>");
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>.awq_falseBorder" +
-			"{" +
+		"{" +
 			"border-color: #d80275;" +
-			"}</style>");
+		"}</style>");
 
 		globalThis.window.document.head.append("<!--End of AnkiWeb Quiz v" + GM.info.script.version + " CSS-->");
 
 	}
 
-	async _LoadOptionsAndDecks() {
+	async _LoadOptionsAndDecks() 
+	{
 		this._Options = await GM.getValue("awqOptions");
 		this._Decks = await GM.getValue("awqDecks");
 
-		if (this._Options == null)
+		if(this._Options == null)
 			this._Options = new Object();
 		if (this._Decks == null)
 			this._Decks = new Object();
@@ -108,53 +112,61 @@ class AnkiWebQuiz {
 
 		let vals = await GM.listValues();
 
-		for (let i = 0; i < vals.length; i++) {
+		for (let i = 0; i < vals.length; i++)
+		{
 			console.log("*" + vals[i] + ":" + await GM.getValue(vals[i]));
 		}
 		console.log("*-----*");
 	}
 
-	async Main() {
-		if (globalThis.window.document.location.pathname.startsWith("/decks")) {
+	async Main() 
+	{
+		if (globalThis.window.document.location.pathname.startsWith("/decks"))
+		{
 			let strs = globalThis.window.document.querySelectorAll("button.btn-link");
-			for (let i = 0; i < strs.length; i++) {
-				let _id = strs[i].id;
+			for (let i = 0; i < strs.length; i++)
+			{
+				let _node = strs[i];
+				let _text = _node.textContent.trim().replace(" ", "_");
 
-				//Console.WriteLine(_id);
+				if(this._Decks[_text] == null)
+						this._Decks[_text] = new Object();
 
-				if (_id.startsWith("did")) {
-					if (this._Decks[_id.substring(3)] == null)
-						this._Decks[_id.substring(3)] = new Object();
+				_node.addEventListener("click", () => 
+				{
+					GM.setValue("awqDeckId", _text);
+				}, true);
 
-					strs[i].addEventListener("click", () => {
-						GM.setValue("awqDeckId", _id.substring(3));
-					}, true);
-				}
 			}
 			GM.setValue("awqDecks", this._Decks);
 		}
-		if (globalThis.window.document.location.pathname.startsWith("/study")) {
+		if (globalThis.window.document.location.pathname.startsWith("/study"))
+		{
 			this._DeckId = await GM.getValue("awqDeckId");
-			if (this._DeckId == null) {
+			if (this._DeckId == null) 
+			{
 				console.log("Deck id is null");
 				return;
 			}
 
-			let _study = globalThis.window.eval("study");
+			let _study = globalThis.window.eval("study");	
 			console.log(_study);
 
-			if (_study["currentCard"] == null) {
-				globalThis.window.setTimeout(() => {
+			if (_study == null || _study["currentCard"] == null) 
+			{
+				globalThis.window.setTimeout(() =>
+				{
 					this.Main();
 				}, 1000);
 				return;
 			}
 
 			let _id = _study["currentCard"]["cardId"];
-
+				
 			this._Decks[this._DeckId][_id] = _study["currentCard"];
 
-			for (let i = 0; i < _study["cards"].length; i++) {
+			for (let i = 0; i < _study["cards"].length; i++)
+			{
 				_id = _study["cards"][i]["cardId"];
 				this._Decks[this._DeckId][_id] = _study["cards"][i];
 			}
@@ -162,10 +174,12 @@ class AnkiWebQuiz {
 			this.Qiuz(_study);
 
 			GM.setValue("awqDecks", this._Decks);
+				
 		}
 	}
 
-	Qiuz(study) {
+	Qiuz(study) 
+	{
 		let cardsId = new Array();
 
 		cardsId.push(study["currentCard"]["cardId"]);
@@ -173,17 +187,21 @@ class AnkiWebQuiz {
 		let keys = Object.keys(this._Decks[this._DeckId]);
 
 		let len = 11;
-		if (len >= keys.length) {
-			len = keys.length - 1;
+		if(len >= keys.length) 
+		{
+			len = keys.length- 1;
 		}
 
-		for (let i = 0; i < len; i++) {
+		for(let i = 0; i < len; i++) 
+		{
 			let _randomInt = this.GetRandomInt(keys.length);
 			let _id = keys[_randomInt];
 			let _continue = false;
 
-			for (let j = 0; j < cardsId.length; j++) {
-				if (_id == cardsId[j]) {
+			for (let j = 0; j < cardsId.length; j++)
+			{
+				if (_id == cardsId[j])
+				{
 					i--;
 					_continue = true;
 					break;
@@ -205,30 +223,36 @@ class AnkiWebQuiz {
 		before.parentNode.insertBefore(divGrid, before);
 
 		let answer = globalThis.window.document.querySelector("#ansbuta");
-		if (!answer.classList.contains("awqEvent")) {
+		if (!answer.classList.contains("awqEvent")) 
+		{
 			answer.classList.add("awqEvent");
-			answer.addEventListener("click", () => {
+			answer.addEventListener("click", () =>
+			{
 				let eases = globalThis.window.document.querySelectorAll("#easebuts button");
 
 				//Console.WriteLine(eases);
-				for (let i = 0; i < eases.length; i++) {
+				for (let i = 0; i < eases.length; i++)
+				{
 					if (eases[i].classList.contains("awqEvent"))
 						continue;
 
 					eases[i].classList.add("awqEvent");
-					eases[i].addEventListener("click", () => {
+					eases[i].addEventListener("click", () =>
+					{
 						this.AddEventsForEases();
 					}, false);
 				}
 			}, false);
 		}
 
-		for (let i = 0; i < cardsId.length; i++) {
+		for (let i = 0; i < cardsId.length; i++)
+		{
 			let div = globalThis.window.document.createElement("div");
 			div.classList.add("awq_quizButton");
 			div.id = cardsId[i];
 
-			div.addEventListener("click", (e) => {
+			div.addEventListener("click", (e) => 
+			{
 				let _id = e.currentTarget.id;
 				console.log(_id);
 
@@ -238,29 +262,33 @@ class AnkiWebQuiz {
 				let _eases = globalThis.window.document.querySelectorAll("#easebuts button");
 
 				//Console.WriteLine(_eases);
-				for (let i = 0; i < _eases.length; i++) {
+				for (let i = 0; i < _eases.length; i++)
+				{
 					if (_eases[i].classList.contains("awqEvent"))
 						continue;
 
 					_eases[i].classList.add("awqEvent");
-					_eases[i].addEventListener("click", () => {
+					_eases[i].addEventListener("click", () =>
+					{
 						this.AddEventsForEases();
 					}, false);
 				}
 
-				if (_id == study["currentCard"]["cardId"]) {
+				if (_id == study["currentCard"]["cardId"])
+				{
 					div.classList.add("awq_true");
 					div.classList.add("awq_trueBorder");
-
+						
 					_eases[1].classList.add("awq_trueBorder");
 				}
-				else {
+				else 
+				{
 					div.classList.add("awq_false");
 					div.classList.add("awq_falseBorder");
-
+	
 					_eases[0].classList.add("awq_falseBorder");
 				}
-			}, false);
+			},false);
 
 			let html = this._Decks[this._DeckId][cardsId[i]]["answer"].replace(this._Decks[this._DeckId][cardsId[i]]["question"], "").replace("\n\n<hr id=answer>\n\n", "").replace("<img", "<img width=\"100%\"");
 
@@ -270,18 +298,22 @@ class AnkiWebQuiz {
 		}
 	}
 
-	AddEventsForEases() {
+	AddEventsForEases() 
+	{
 		let _grid = globalThis.window.document.querySelector(".awq_quizGrid");
 		_grid.remove();
 		this.Main();
 	}
 
-	GetRandomInt(max) {
+	GetRandomInt(max)
+	{
 		return Math.floor(Math.random() * max);
 	}
 
-	Shuffle(array) {
-		for (let i = array.length - 1; i > 0; i--) {
+	Shuffle(array)
+	{
+		for (let i = array.length- 1; i > 0; i--)
+		{
 			let _i = i + 1;
 			let j = Math.floor(Math.random() * _i);
 			let temp = array[i];
@@ -293,12 +325,15 @@ class AnkiWebQuiz {
 	}
 }
 
+
 let awq;
 
-window.onload = function () {
+window.onload = function ()
+{
 	awq = new AnkiWebQuiz();
 
-	setTimeout(() => {
+	setTimeout(() =>
+	{
 		awq.Main();
 		console.log(awq);
 	}, 1000);
