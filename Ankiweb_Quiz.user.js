@@ -5,30 +5,30 @@
 // @match     https://ankiuser.net/*
 // @match     https://ankiweb.net/*
 // @author	TiLied
-// @version	2.0.01
-// @grant	GM_openInTab
+// @version	2.0.02
 // @grant	GM_listValues
 // @grant	GM_getValue
 // @grant	GM_setValue
 // @grant	GM_deleteValue
 // @require	https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @grant	GM.openInTab
 // @grant	GM.listValues
 // @grant	GM.getValue
 // @grant	GM.setValue
 // @grant	GM.deleteValue
 // ==/UserScript==
 
-
 class AnkiWebQuiz
 {
 	_Options = new Object();
 	_Decks = new Object();
+	_GlobalId = 0;
 
 	_DeckId;
 
 	constructor()
 	{
+		//GM.deleteValue("awqDecks");
+		//GM.deleteValue("awqGlobalId");
 		console.log("AnkiWeb Quiz v" + GM.info.script.version + " initialization");
 
 		this._LoadOptionsAndDecks();
@@ -78,6 +78,7 @@ class AnkiWebQuiz
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>.awq_trueBorder" +
 		"{" +
 			"border-color: #75d802;" +
+			"border-width: 3px;" +
 		"}</style>");
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_false" +
 		"{" +
@@ -90,6 +91,7 @@ class AnkiWebQuiz
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>.awq_falseBorder" +
 		"{" +
 			"border-color: #d80275;" +
+			"border-width: 3px;" +
 		"}</style>");
 
 		globalThis.window.document.head.append("<!--End of AnkiWeb Quiz v" + GM.info.script.version + " CSS-->");
@@ -100,11 +102,14 @@ class AnkiWebQuiz
 	{
 		this._Options = await GM.getValue("awqOptions");
 		this._Decks = await GM.getValue("awqDecks");
+		this._GlobalId = await GM.getValue("awqGlobalId");
 
-		if(this._Options == null)
+		if (this._Options == null)
 			this._Options = new Object();
 		if (this._Decks == null)
 			this._Decks = new Object();
+		if (this._GlobalId == null)
+			this._GlobalId = 0;
 
 		//Console log prefs with value
 		console.log("*prefs:");
@@ -127,7 +132,7 @@ class AnkiWebQuiz
 			for (let i = 0; i < strs.length; i++)
 			{
 				let _node = strs[i];
-				let _text = _node.textContent.trim().replace(" ", "_");
+				let _text = _node.textContent.trim().replaceAll(" ", "");
 
 				if(this._Decks[_text] == null)
 						this._Decks[_text] = new Object();
@@ -149,10 +154,10 @@ class AnkiWebQuiz
 				return;
 			}
 
-			let _study = globalThis.window.eval("study");	
-			console.log(_study);
+			let _awq = globalThis.window.document.body.querySelector("#qa");	
+			console.log(_awq);
 
-			if (_study == null || _study["currentCard"] == null) 
+			if (_awq == null) 
 			{
 				globalThis.window.setTimeout(() =>
 				{
@@ -160,29 +165,43 @@ class AnkiWebQuiz
 				}, 1000);
 				return;
 			}
-
-			let _id = _study["currentCard"]["cardId"];
-				
-			this._Decks[this._DeckId][_id] = _study["currentCard"];
-
-			for (let i = 0; i < _study["cards"].length; i++)
+			let _inner = _awq.innerHTML;
+			let _id = "";
+			let keys = Object.keys(this._Decks[this._DeckId]);
+			
+			for (let i = 0; i < keys.length; i++)
 			{
-				_id = _study["cards"][i]["cardId"];
-				this._Decks[this._DeckId][_id] = _study["cards"][i];
+				if (_inner == this._Decks[this._DeckId][keys[i]]["question"]) 
+				{
+					_id = this._Decks[this._DeckId][keys[i]]["cardId"];
+					break;
+				}
 			}
 
-			this.Qiuz(_study);
+			if (_id == "") 
+			{
+				_id += this.GetId();
+
+				this._Decks[this._DeckId][_id] = new Object();
+				this._Decks[this._DeckId][_id]["cardId"] = _id;
+				this._Decks[this._DeckId][_id]["question"] = _inner;
+				this._Decks[this._DeckId][_id]["answer"] = "Use this deck more!";
+			}
+
+			this.Qiuz(_id);
 
 			GM.setValue("awqDecks", this._Decks);
 				
 		}
 	}
 
-	Qiuz(study) 
+	Qiuz(id) 
 	{
+		this.PlayAudio();
+
 		let cardsId = new Array();
 
-		cardsId.push(study["currentCard"]["cardId"]);
+		cardsId.push(id);
 
 		let keys = Object.keys(this._Decks[this._DeckId]);
 
@@ -222,7 +241,7 @@ class AnkiWebQuiz
 
 		before.parentNode.insertBefore(divGrid, before);
 
-		let answer = globalThis.window.document.querySelector("#ansbuta");
+		let answer = globalThis.window.document.querySelector("button.btn-primary");
 		if (!answer.classList.contains("awqEvent")) 
 		{
 			answer.classList.add("awqEvent");
@@ -256,41 +275,50 @@ class AnkiWebQuiz
 				let _id = e.currentTarget.id;
 				console.log(_id);
 
-				let _button = globalThis.window.document.querySelector("#ansbuta");
+				let _button = globalThis.window.document.querySelector("button.btn-primary");
 				_button.click();
 
-				let _eases = globalThis.window.document.querySelectorAll("#easebuts button");
+				let _awq = globalThis.window.document.body.querySelector("#qa");
+				this._Decks[this._DeckId][id]["answer"] = _awq.innerHTML;
+				this.PlayAudio();
 
-				//Console.WriteLine(_eases);
-				for (let i = 0; i < _eases.length; i++)
+				globalThis.window.setTimeout(() =>
 				{
-					if (_eases[i].classList.contains("awqEvent"))
-						continue;
+					let _eases = globalThis.window.document.querySelectorAll("button.m-1");
 
-					_eases[i].classList.add("awqEvent");
-					_eases[i].addEventListener("click", () =>
+					//Console.WriteLine(_eases);
+					for (let i = 0; i < _eases.length; i++)
 					{
-						this.AddEventsForEases();
-					}, false);
-				}
+						if (_eases[i].classList.contains("awqEvent"))
+							continue;
 
-				if (_id == study["currentCard"]["cardId"])
-				{
-					div.classList.add("awq_true");
-					div.classList.add("awq_trueBorder");
-						
-					_eases[1].classList.add("awq_trueBorder");
-				}
-				else 
-				{
-					div.classList.add("awq_false");
-					div.classList.add("awq_falseBorder");
-	
-					_eases[0].classList.add("awq_falseBorder");
-				}
+						_eases[i].classList.add("awqEvent");
+						_eases[i].addEventListener("click", () =>
+						{
+							this.AddEventsForEases();
+						}, false);
+					}
+
+					if (_id == id)
+					{
+						div.classList.add("awq_true");
+						div.classList.add("awq_trueBorder");
+
+						_eases[1].classList.add("awq_trueBorder");
+					}
+					else
+					{
+						div.classList.add("awq_false");
+						div.classList.add("awq_falseBorder");
+
+						_eases[0].classList.add("awq_falseBorder");
+					}
+				}, 500);
+				
 			},false);
 
-			let html = this._Decks[this._DeckId][cardsId[i]]["answer"].replace(this._Decks[this._DeckId][cardsId[i]]["question"], "").replace("\n\n<hr id=answer>\n\n", "").replace("<img", "<img width=\"100%\"");
+			let q = this._Decks[this._DeckId][cardsId[i]]["question"].replace("</awq>", "");
+			let html = "<awq>" + this._Decks[this._DeckId][cardsId[i]]["answer"].replace(q, "").replace("\n\n<hr id=\"answer\">\n\n", "").replace("<img", "<img width=\"100%\"");
 
 			div.insertAdjacentHTML("beforeend", html);
 
@@ -300,9 +328,27 @@ class AnkiWebQuiz
 
 	AddEventsForEases() 
 	{
-		let _grid = globalThis.window.document.querySelector(".awq_quizGrid");
-		_grid.remove();
+		let grid = globalThis.window.document.querySelector(".awq_quizGrid");
+		grid.remove();
 		this.Main();
+	}
+
+	GetId()
+	{
+		let id = this._GlobalId++;
+		GM.setValue("awqGlobalId", id);
+		return id;
+	}
+
+	PlayAudio() 
+	{
+		let box = globalThis.window.document.body.querySelector("#qa_box");
+		if (box != null)
+		{
+			let audio = box.querySelector("audio");
+			if(audio != null)
+				audio.play();
+		}
 	}
 
 	GetRandomInt(max)

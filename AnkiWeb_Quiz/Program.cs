@@ -19,14 +19,12 @@ namespace AnkiWeb_Quiz
 					"// @match     https://ankiuser.net/*\r\n" +
 					"// @match     https://ankiweb.net/*\r\n" +
 					"// @author	TiLied\r\n" +
-					"// @version	2.0.01\r\n" +
-					"// @grant	GM_openInTab\r\n" +
+					"// @version	2.0.02\r\n" +
 					"// @grant	GM_listValues\r\n" +
 					"// @grant	GM_getValue\r\n" +
 					"// @grant	GM_setValue\r\n" +
 					"// @grant	GM_deleteValue\r\n" +
 					"// @require	https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js\r\n" +
-					"// @grant	GM.openInTab\r\n" +
 					"// @grant	GM.listValues\r\n" +
 					"// @grant	GM.getValue\r\n" +
 					"// @grant	GM.setValue\r\n" +
@@ -45,19 +43,17 @@ namespace AnkiWeb_Quiz
 
 				CustomCSNamesToJS = new List<Tuple<string, string>>()
 				{
-					new Tuple<string, string>("Count", "length"),
 					new Tuple<string, string>("Replace", "replace"),
-					new Tuple<string, string>("Trim", "trim")
+					new Tuple<string, string>("Trim", "trim"),
+					new Tuple<string, string>("Length", "length"),
 				},
 
-				CustomCSTypesToJS = new() { typeof(Extensions) },
+				CustomCSTypesToJS = new() { typeof(Extensions), typeof(Element2) },
 
-				OutPutPath = "..\\..\\..\\..\\",
-
-				OutPutFileName = "Ankiweb_Quiz.user.js"
+				OutPutPath = "..\\..\\..\\..\\"
 			};
-			var cstojs = new CSTOJS(executingAssembly, opt);
-			await cstojs.GenerateAsync("..\\..\\..\\..\\AnkiWeb_Quiz\\AnkiWebQuiz.cs");
+			var cstojs = new CSTOJS(opt);
+			await cstojs.GenerateOneAsync("..\\..\\..\\..\\AnkiWeb_Quiz\\AnkiWebQuiz.cs", "Ankiweb_Quiz.user.js");
 
 			Console.ReadKey();
 		}
@@ -70,11 +66,15 @@ namespace AnkiWeb_Quiz
 		{
 			throw new System.NotImplementedException();
 		}
-
 		[To(ToAttribute.FirstCharToLowerCase)]
-		public static string Eval(this Window obj, string data)
+		public static string ReplaceAll(this string obj, string pattern, string replacement)
 		{
 			throw new System.NotImplementedException();
 		}
+	}
+	public class Element2 : Element
+	{
+		[To(ToAttribute.FirstCharToLowerCase)]
+		public string InnerHTML { get; set; }
 	}
 }

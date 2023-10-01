@@ -5,16 +5,18 @@ using Math = CSharpToJavaScript.APIs.JS.Math;
 using Object = CSharpToJavaScript.APIs.JS.Object;
 
 namespace AnkiWeb_Quiz;
-
 public class AnkiWebQuiz
 {
 	private dynamic _Options = new Object();
 	private dynamic _Decks = new Object();
+	private dynamic _GlobalId = 0;
 
 	private string _DeckId;
 
 	public AnkiWebQuiz()
 	{
+		//GM.deleteValue("awqDecks");
+		//GM.deleteValue("awqGlobalId");
 		Console.WriteLine("AnkiWeb Quiz v" + GM.Info.Script.Version + " initialization");
 
 		_LoadOptionsAndDecks();
@@ -64,6 +66,7 @@ public class AnkiWebQuiz
 		GlobalThis.Window.Document.Head.InsertAdjacentHTML("beforeend", "<style type='text/css'>.awq_trueBorder" +
 		"{" +
 			"border-color: #75d802;" +
+			"border-width: 3px;" +
 		"}</style>");
 		GlobalThis.Window.Document.Head.InsertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_false" +
 		"{" +
@@ -76,6 +79,7 @@ public class AnkiWebQuiz
 		GlobalThis.Window.Document.Head.InsertAdjacentHTML("beforeend", "<style type='text/css'>.awq_falseBorder" +
 		"{" +
 			"border-color: #d80275;" +
+			"border-width: 3px;" +
 		"}</style>");
 
 		(GlobalThis.Window.Document.Head as ParentNode).Append("<!--End of AnkiWeb Quiz v" + GM.Info.Script.Version + " CSS-->");
@@ -86,11 +90,14 @@ public class AnkiWebQuiz
 	{
 		_Options = await GM.GetValue("awqOptions");
 		_Decks = await GM.GetValue("awqDecks");
+		_GlobalId = await GM.GetValue("awqGlobalId");
 
-		if(_Options == null)
+		if (_Options == null)
 			_Options = new Object();
 		if (_Decks == null)
 			_Decks = new Object();
+		if (_GlobalId == null)
+			_GlobalId = 0;
 
 		//Console log prefs with value
 		Console.WriteLine("*prefs:");
@@ -113,7 +120,7 @@ public class AnkiWebQuiz
 			for (int i = 0; i < (int)strs.Length; i++)
 			{
 				Node _node = (strs[i] as Node);
-				string _text = _node.TextContent.Trim().Replace(" ", "_");
+				string _text = _node.TextContent.Trim().ReplaceAll(" ", "");
 
 				if(_Decks[_text] == null)
 						_Decks[_text] = new Object();
@@ -135,10 +142,10 @@ public class AnkiWebQuiz
 				return;
 			}
 
-			dynamic _study = GlobalThis.Window.Eval("study");	
-			Console.WriteLine(_study);
+			Element? _awq = (GlobalThis.Window.Document.Body as ParentNode).QuerySelector("#qa");	
+			Console.WriteLine(_awq);
 
-			if (_study == null || _study["currentCard"] == null) 
+			if (_awq == null) 
 			{
 				(GlobalThis.Window as WindowOrWorkerGlobalScope).SetTimeout(() =>
 				{
@@ -146,29 +153,43 @@ public class AnkiWebQuiz
 				}, 1000);
 				return;
 			}
-
-			string _id = _study["currentCard"]["cardId"];
-				
-			_Decks[_DeckId][_id] = _study["currentCard"];
-
-			for (int i = 0; i < _study["cards"].Count; i++)
+			string _inner = (_awq as Element2).InnerHTML;
+			string _id = "";
+			List<string> keys = Object.Keys(_Decks[_DeckId]);
+			
+			for (int i = 0; i < keys.Count; i++)
 			{
-				_id = _study["cards"][i]["cardId"];
-				_Decks[_DeckId][_id] = _study["cards"][i];
+				if (_inner == _Decks[_DeckId][keys[i]]["question"]) 
+				{
+					_id = _Decks[_DeckId][keys[i]]["cardId"];
+					break;
+				}
 			}
 
-			Qiuz(_study);
+			if (_id == "") 
+			{
+				_id += GetId();
+
+				_Decks[_DeckId][_id] = new Object();
+				_Decks[_DeckId][_id]["cardId"] = _id;
+				_Decks[_DeckId][_id]["question"] = _inner;
+				_Decks[_DeckId][_id]["answer"] = "Use this deck more!";
+			}
+
+			Qiuz(_id);
 
 			GM.SetValue("awqDecks", _Decks);
 				
 		}
 	}
 
-	private void Qiuz(dynamic study) 
+	private void Qiuz(string id) 
 	{
+		PlayAudio();
+
 		List<string> cardsId = new();
 
-		cardsId.Add(study["currentCard"]["cardId"]);
+		cardsId.Add(id);
 
 		List<string> keys = Object.Keys(_Decks[_DeckId]);
 
@@ -208,7 +229,7 @@ public class AnkiWebQuiz
 
 		before.ParentNode.InsertBefore(divGrid, before);
 
-		Element answer = (GlobalThis.Window.Document as ParentNode).QuerySelector("#ansbuta");
+		Element answer = (GlobalThis.Window.Document as ParentNode).QuerySelector("button.btn-primary");
 		if (!answer.ClassList.Contains("awqEvent")) 
 		{
 			answer.ClassList.Add("awqEvent");
@@ -242,41 +263,50 @@ public class AnkiWebQuiz
 				string _id = (e.CurrentTarget as Element).Id;
 				Console.WriteLine(_id);
 
-				Element _button = (GlobalThis.Window.Document as ParentNode).QuerySelector("#ansbuta");
+				Element _button = (GlobalThis.Window.Document as ParentNode).QuerySelector("button.btn-primary");
 				(_button as HTMLElement).Click();
 
-				NodeList _eases = (GlobalThis.Window.Document as ParentNode).QuerySelectorAll("#easebuts button");
+				Element? _awq = (GlobalThis.Window.Document.Body as ParentNode).QuerySelector("#qa");
+				_Decks[_DeckId][id]["answer"] = (_awq as Element2).InnerHTML;
+				PlayAudio();
 
-				//Console.WriteLine(_eases);
-				for (int i = 0; i < (int)_eases.Length; i++)
+				(GlobalThis.Window as WindowOrWorkerGlobalScope).SetTimeout(() =>
 				{
-					if ((_eases[i] as Element).ClassList.Contains("awqEvent"))
-						continue;
+					NodeList _eases = (GlobalThis.Window.Document as ParentNode).QuerySelectorAll("button.m-1");
 
-					(_eases[i] as Element).ClassList.Add("awqEvent");
-					_eases[i].AddEventListener("click", () =>
+					//Console.WriteLine(_eases);
+					for (int i = 0; i < (int)_eases.Length; i++)
 					{
-						AddEventsForEases();
-					}, false);
-				}
+						if ((_eases[i] as Element).ClassList.Contains("awqEvent"))
+							continue;
 
-				if (_id == study["currentCard"]["cardId"])
-				{
-					div.ClassList.Add("awq_true");
-					div.ClassList.Add("awq_trueBorder");
-						
-					(_eases[1] as Element).ClassList.Add("awq_trueBorder");
-				}
-				else 
-				{
-					div.ClassList.Add("awq_false");
-					div.ClassList.Add("awq_falseBorder");
-	
-					(_eases[0] as Element).ClassList.Add("awq_falseBorder");
-				}
+						(_eases[i] as Element).ClassList.Add("awqEvent");
+						_eases[i].AddEventListener("click", () =>
+						{
+							AddEventsForEases();
+						}, false);
+					}
+
+					if (_id == id)
+					{
+						div.ClassList.Add("awq_true");
+						div.ClassList.Add("awq_trueBorder");
+
+						(_eases[1] as Element).ClassList.Add("awq_trueBorder");
+					}
+					else
+					{
+						div.ClassList.Add("awq_false");
+						div.ClassList.Add("awq_falseBorder");
+
+						(_eases[0] as Element).ClassList.Add("awq_falseBorder");
+					}
+				}, 500);
+				
 			},false);
 
-			string html = _Decks[_DeckId][cardsId[i]]["answer"].Replace(_Decks[_DeckId][cardsId[i]]["question"], "").Replace("\n\n<hr id=answer>\n\n", "").Replace("<img", "<img width=\"100%\"");
+			string q = _Decks[_DeckId][cardsId[i]]["question"].Replace("</awq>", "");
+			string html = "<awq>" + _Decks[_DeckId][cardsId[i]]["answer"].Replace(q, "").Replace("\n\n<hr id=\"answer\">\n\n", "").Replace("<img", "<img width=\"100%\"");
 
 			div.InsertAdjacentHTML("beforeend", html);
 
@@ -286,9 +316,27 @@ public class AnkiWebQuiz
 
 	private void AddEventsForEases() 
 	{
-		Element _grid = (GlobalThis.Window.Document as ParentNode).QuerySelector(".awq_quizGrid");
-		(_grid as ChildNode).Remove();
+		Element grid = (GlobalThis.Window.Document as ParentNode).QuerySelector(".awq_quizGrid");
+		(grid as ChildNode).Remove();
 		Main();
+	}
+
+	private int GetId()
+	{
+		int id = _GlobalId++;
+		GM.SetValue("awqGlobalId", id);
+		return id;
+	}
+
+	private void PlayAudio() 
+	{
+		Element box = (GlobalThis.Window.Document.Body as ParentNode).QuerySelector("#qa_box");
+		if (box != null)
+		{
+			Element audio = (box as ParentNode).QuerySelector("audio");
+			if(audio != null)
+				(audio as HTMLAudioElement).Play();
+		}
 	}
 
 	private int GetRandomInt(int max)
