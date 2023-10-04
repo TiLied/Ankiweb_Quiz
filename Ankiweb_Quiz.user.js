@@ -5,7 +5,7 @@
 // @match     https://ankiuser.net/*
 // @match     https://ankiweb.net/*
 // @author	TiLied
-// @version	2.0.02
+// @version	2.0.03
 // @grant	GM_listValues
 // @grant	GM_getValue
 // @grant	GM_setValue
@@ -33,6 +33,11 @@ class AnkiWebQuiz
 
 		this._LoadOptionsAndDecks();
 		this._SetCSS();
+
+		globalThis.window.setTimeout(() =>
+		{
+			this._OptionsUI();
+		}, 750);
 	}
 
 	_SetCSS()
@@ -45,22 +50,22 @@ class AnkiWebQuiz
 			"display: grid;" +
 			"grid-template-columns: repeat(4,auto);" +
 			"grid-template-rows: auto;" +
+			"grid-gap: 5px;" +
 		"}</style>");
 
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_quizButton" +
 		"{" +
-			"color: #fff;" +
+			"color: #fff !important;" +
 			"background-color: #0275d8;" +
 			"border-color: #0275d8;" +
-			"padding: .75rem 1.5rem;" +
 			"font-size: 1rem;" +
 			"border-radius: .3rem;" +
 			"border: 1px solid transparent;" +
-			"max-width:250px;" +
-			"margin:5px;" +
+			"max-width:350px;" +
 			"cursor: pointer;" +
 			"max-height: 300px;" +
 			"overflow: auto;" +
+			"padding: 5px;" +
 		"}</ style >");
 		globalThis.window.document.head.insertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_quizButton:hover" +
 		"{" +
@@ -97,7 +102,6 @@ class AnkiWebQuiz
 		globalThis.window.document.head.append("<!--End of AnkiWeb Quiz v" + GM.info.script.version + " CSS-->");
 
 	}
-
 	async _LoadOptionsAndDecks() 
 	{
 		this._Options = await GM.getValue("awqOptions");
@@ -105,7 +109,10 @@ class AnkiWebQuiz
 		this._GlobalId = await GM.getValue("awqGlobalId");
 
 		if (this._Options == null)
+		{
 			this._Options = new Object();
+			this._Options["Buttons"] = 8;
+		}
 		if (this._Decks == null)
 			this._Decks = new Object();
 		if (this._GlobalId == null)
@@ -122,6 +129,27 @@ class AnkiWebQuiz
 			console.log("*" + vals[i] + ":" + await GM.getValue(vals[i]));
 		}
 		console.log("*-----*");
+	}
+	_OptionsUI() 
+	{
+
+		let nav = globalThis.window.document.body.querySelector(".navbar-nav");
+
+		let num = `<label for=\"awqButtons\">Number of Buttons (4-12):</label>\r\n\r\n<input type=\"number\" id=\"awqButtons\" name=\"tentacles\" min=\"4\" max=\"12\" value=\"${this._Options["Buttons"]}\" />`;
+		nav.insertAdjacentHTML("beforeend", num);
+
+		let inputt = globalThis.window.document.querySelector("#awqButtons");
+
+		inputt.addEventListener("change", (e) =>
+		{
+
+			let value = e.target["value"];
+			console.log(value);
+			this._Options["Buttons"] = value;
+			GM.setValue("awqOptions", this._Options);
+
+		}, false);
+
 	}
 
 	async Main() 
@@ -205,7 +233,7 @@ class AnkiWebQuiz
 
 		let keys = Object.keys(this._Decks[this._DeckId]);
 
-		let len = 11;
+		let len = this._Options["Buttons"] - 1;
 		if(len >= keys.length) 
 		{
 			len = keys.length- 1;
@@ -247,7 +275,7 @@ class AnkiWebQuiz
 			answer.classList.add("awqEvent");
 			answer.addEventListener("click", () =>
 			{
-				let eases = globalThis.window.document.querySelectorAll("#easebuts button");
+				let eases = globalThis.window.document.querySelectorAll("button.m-1");
 
 				//Console.WriteLine(eases);
 				for (let i = 0; i < eases.length; i++)

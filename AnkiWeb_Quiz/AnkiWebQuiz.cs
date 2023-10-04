@@ -21,6 +21,11 @@ public class AnkiWebQuiz
 
 		_LoadOptionsAndDecks();
 		_SetCSS();
+
+		(GlobalThis.Window as WindowOrWorkerGlobalScope).SetTimeout(() =>
+		{
+			_OptionsUI();
+		}, 750);
 	}
 
 	private void _SetCSS()
@@ -33,22 +38,22 @@ public class AnkiWebQuiz
 			"display: grid;" +
 			"grid-template-columns: repeat(4,auto);" +
 			"grid-template-rows: auto;" +
+			"grid-gap: 5px;" +
 		"}</style>");
 
 		GlobalThis.Window.Document.Head.InsertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_quizButton" +
 		"{" +
-			"color: #fff;" +
+			"color: #fff !important;" +
 			"background-color: #0275d8;" +
 			"border-color: #0275d8;" +
-			"padding: .75rem 1.5rem;" +
 			"font-size: 1rem;" +
 			"border-radius: .3rem;" +
 			"border: 1px solid transparent;" +
-			"max-width:250px;" +
-			"margin:5px;" +
+			"max-width:350px;" +
 			"cursor: pointer;" +
 			"max-height: 300px;" +
 			"overflow: auto;" +
+			"padding: 5px;" +
 		"}</ style >");
 		GlobalThis.Window.Document.Head.InsertAdjacentHTML("beforeend", "<style type='text/css'>div.awq_quizButton:hover" +
 		"{" +
@@ -85,7 +90,6 @@ public class AnkiWebQuiz
 		(GlobalThis.Window.Document.Head as ParentNode).Append("<!--End of AnkiWeb Quiz v" + GM.Info.Script.Version + " CSS-->");
 
 	}
-
 	private async void _LoadOptionsAndDecks() 
 	{
 		_Options = await GM.GetValue("awqOptions");
@@ -93,7 +97,10 @@ public class AnkiWebQuiz
 		_GlobalId = await GM.GetValue("awqGlobalId");
 
 		if (_Options == null)
+		{
 			_Options = new Object();
+			_Options["Buttons"] = 8;
+		}
 		if (_Decks == null)
 			_Decks = new Object();
 		if (_GlobalId == null)
@@ -110,6 +117,27 @@ public class AnkiWebQuiz
 			Console.WriteLine("*" + vals[i] + ":" + await GM.GetValue(vals[i]));
 		}
 		Console.WriteLine("*-----*");
+	}
+	private void _OptionsUI() 
+	{
+
+		Element nav = (GlobalThis.Window.Document.Body as ParentNode).QuerySelector(".navbar-nav");
+
+		string num = $"<label for=\"awqButtons\">Number of Buttons (4-12):</label>\r\n\r\n<input type=\"number\" id=\"awqButtons\" name=\"tentacles\" min=\"4\" max=\"12\" value=\"{_Options["Buttons"]}\" />";
+		nav.InsertAdjacentHTML("beforeend", num);
+
+		Element inputt = (GlobalThis.Window.Document as ParentNode).QuerySelector("#awqButtons");
+
+		inputt.AddEventListener("change", (e) =>
+		{
+
+			dynamic value = (e.Target as dynamic)["value"];
+			Console.WriteLine(value);
+			_Options["Buttons"] = value;
+			GM.SetValue("awqOptions", _Options);
+
+		}, false);
+
 	}
 
 	public async void Main() 
@@ -193,7 +221,7 @@ public class AnkiWebQuiz
 
 		List<string> keys = Object.Keys(_Decks[_DeckId]);
 
-		int len = 11;
+		int len = _Options["Buttons"] - 1;
 		if(len >= keys.Count) 
 		{
 			len = keys.Count - 1;
@@ -235,7 +263,7 @@ public class AnkiWebQuiz
 			answer.ClassList.Add("awqEvent");
 			answer.AddEventListener("click", () =>
 			{
-				NodeList eases = (GlobalThis.Window.Document as ParentNode).QuerySelectorAll("#easebuts button");
+				NodeList eases = (GlobalThis.Window.Document as ParentNode).QuerySelectorAll("button.m-1");
 
 				//Console.WriteLine(eases);
 				for (int i = 0; i < (int)eases.Length; i++)

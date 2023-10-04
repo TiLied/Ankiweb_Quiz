@@ -1,7 +1,6 @@
 ﻿using CSharpToJavaScript;
 using CSharpToJavaScript.APIs.JS;
 using CSharpToJavaScript.Utils;
-using System.Reflection;
 
 namespace AnkiWeb_Quiz
 {
@@ -9,7 +8,6 @@ namespace AnkiWeb_Quiz
 	{
 		static async Task Main(string[] args)
 		{
-			var executingAssembly = Assembly.GetExecutingAssembly();
 			var opt = new CSTOJSOptions
 			{
 				AddSBInFront = new("// ==UserScript==\r\n" +
@@ -19,7 +17,7 @@ namespace AnkiWeb_Quiz
 					"// @match     https://ankiuser.net/*\r\n" +
 					"// @match     https://ankiweb.net/*\r\n" +
 					"// @author	TiLied\r\n" +
-					"// @version	2.0.02\r\n" +
+					"// @version	2.0.03\r\n" +
 					"// @grant	GM_listValues\r\n" +
 					"// @grant	GM_getValue\r\n" +
 					"// @grant	GM_setValue\r\n" +
