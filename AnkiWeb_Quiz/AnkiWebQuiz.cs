@@ -1,4 +1,5 @@
 ﻿using CSharpToJavaScript.APIs.JS;
+using System.Text.RegularExpressions;
 using static CSharpToJavaScript.APIs.JS.GlobalObject;
 
 using Math = CSharpToJavaScript.APIs.JS.Math;
@@ -334,7 +335,8 @@ public class AnkiWebQuiz
 			},false);
 
 			string q = _Decks[_DeckId][cardsId[i]]["question"].Replace("</awq>", "");
-			string html = "<awq>" + _Decks[_DeckId][cardsId[i]]["answer"].Replace(q, "").Replace("\n\n<hr id=\"answer\">\n\n", "").Replace("<img", "<img width=\"100%\"");
+			RegExp regex2 = new("style=", "g");
+			string html = "<awq>" + _Decks[_DeckId][cardsId[i]]["answer"].Replace(q, "").Replace("\n\n<hr id=\"answer\">\n\n", "").Replace("<img", "<img width=\"100%\"").Replace(regex2, "data-style=");
 
 			div.InsertAdjacentHTML("beforeend", html);
 

@@ -17,7 +17,7 @@ namespace AnkiWeb_Quiz
 					"// @match     https://ankiuser.net/*\r\n" +
 					"// @match     https://ankiweb.net/*\r\n" +
 					"// @author	TiLied\r\n" +
-					"// @version	2.0.03\r\n" +
+					"// @version	2.0.04\r\n" +
 					"// @grant	GM_listValues\r\n" +
 					"// @grant	GM_getValue\r\n" +
 					"// @grant	GM_setValue\r\n" +

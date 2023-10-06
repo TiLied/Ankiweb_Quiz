@@ -5,7 +5,7 @@
 // @match     https://ankiuser.net/*
 // @match     https://ankiweb.net/*
 // @author	TiLied
-// @version	2.0.03
+// @version	2.0.04
 // @grant	GM_listValues
 // @grant	GM_getValue
 // @grant	GM_setValue
@@ -346,7 +346,8 @@ class AnkiWebQuiz
 			},false);
 
 			let q = this._Decks[this._DeckId][cardsId[i]]["question"].replace("</awq>", "");
-			let html = "<awq>" + this._Decks[this._DeckId][cardsId[i]]["answer"].replace(q, "").replace("\n\n<hr id=\"answer\">\n\n", "").replace("<img", "<img width=\"100%\"");
+			let regex2 = new RegExp("style=", "g");
+			let html = "<awq>" + this._Decks[this._DeckId][cardsId[i]]["answer"].replace(q, "").replace("\n\n<hr id=\"answer\">\n\n", "").replace("<img", "<img width=\"100%\"").replace(regex2, "data-style=");
 
 			div.insertAdjacentHTML("beforeend", html);
 
